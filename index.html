@@ -50,7 +50,7 @@
             -webkit-tap-highlight-color: transparent;
             user-select: none;
             padding-bottom: 95px;
-            overscroll-behavior-y: none; /* Deaktiverer utilsigtede træk-ned genindlæsninger på mobil */
+            overscroll-behavior-y: none;
         }
         
         .glass-panel {
@@ -180,7 +180,6 @@
                 <div>
                     <label class="text-xs text-slate-400 font-medium block mb-1">Beløb (kr.)</label>
                     <input type="number" id="brug-belob-input" inputmode="decimal" placeholder="0" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-2xl font-bold text-red-400 focus:outline-none focus:border-red-500">
-                    <!-- Quick Buttons -->
                     <div class="grid grid-cols-4 gap-1.5 mt-2">
                         <button onclick="addQuickAmount('brug-belob-input', 50)" class="bg-slate-800 text-slate-300 hover:bg-slate-700 py-1.5 text-xs font-semibold rounded-lg border border-slate-700">+50</button>
                         <button onclick="addQuickAmount('brug-belob-input', 100)" class="bg-slate-800 text-slate-300 hover:bg-slate-700 py-1.5 text-xs font-semibold rounded-lg border border-slate-700">+100</button>
@@ -267,41 +266,54 @@
         </div>
     </div>
 
-    <!-- MODAL: FASTE UDGIFTER -->
+    <!-- MODAL: FASTE UDGIFTER (OPDATERET OG OPBYGGET TIL MANGE POSTER) -->
     <div id="modal-faste-udgifter" class="fixed inset-0 z-50 modal-bg flex items-end sm:items-center justify-center p-0 sm:p-4 hidden">
-        <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 space-y-4 shadow-2xl max-h-[85vh] flex flex-col">
+        <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 space-y-4 shadow-2xl max-h-[90vh] flex flex-col">
             <div class="flex justify-between items-center border-b border-slate-800 pb-3">
                 <h3 class="font-bold text-slate-100 flex items-center gap-2">
-                    <i data-lucide="sliders" class="w-5 h-5 text-teal-400"></i> Faste Indtægter & Udgifter
+                    <i data-lucide="sliders" class="w-5 h-5 text-teal-400"></i> Fast Budget & Udgifter
                 </h3>
                 <button onclick="closeModal('modal-faste-udgifter')" class="p-1 rounded-lg text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
             </div>
 
             <div class="space-y-4 overflow-y-auto pr-1 no-scrollbar flex-1">
+                <!-- INDTÆGT -->
                 <div>
-                    <label class="text-xs text-slate-400 font-medium block mb-1">Månedlig Indtægt (Udbetalt løn i alt)</label>
-                    <input type="number" id="fast-indtaegt-input" inputmode="decimal" onchange="opdaterIndtaegt(this.value)" placeholder="0" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-xl font-bold text-teal-400">
+                    <label class="text-xs text-slate-400 font-medium block mb-1">Månedlig Samlet Indtægt (kr.)</label>
+                    <input type="number" id="fast-indtaegt-input" inputmode="decimal" oninput="opdaterFastBudgetBeregning()" placeholder="0" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-xl font-bold text-teal-400 focus:outline-none focus:border-teal-500">
                 </div>
 
                 <hr class="border-slate-800">
 
+                <!-- FASTE UDGIFTER SKEMA -->
                 <div class="space-y-2">
-                    <label class="text-xs text-slate-400 font-medium block">Faste udgifter (Husleje, El, Lån osv.)</label>
-                    
-                    <div class="flex gap-2">
-                        <input type="text" id="ny-udgift-navn" placeholder="Tekst (f.eks. Husleje)" class="flex-1 bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-slate-100">
-                        <input type="number" id="ny-udgift-belob" inputmode="decimal" placeholder="Kr." class="w-24 bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-slate-100">
-                        <button onclick="tilfoejFastUdgift()" class="bg-teal-600 hover:bg-teal-700 text-white p-2.5 rounded-xl"><i data-lucide="plus" class="w-4 h-4"></i></button>
+                    <div class="flex justify-between items-center">
+                        <label class="text-xs text-slate-400 font-medium">Faste Udgifter (Husleje, El, Lån, A-kasse m.m.)</label>
+                        <button onclick="tilfoejNyUdgiftRaekke()" class="text-xs font-bold text-teal-400 hover:text-teal-300 flex items-center gap-1">
+                            <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> Tilføj udgift
+                        </button>
                     </div>
 
-                    <div id="faste-udgifter-liste" class="space-y-1.5 pt-2">
-                        <!-- Indsættes dynamisk -->
+                    <div id="faste-udgifter-skema" class="space-y-2 max-h-60 overflow-y-auto no-scrollbar pt-1">
+                        <!-- Dynamiske udgifts-rækker genereres her -->
+                    </div>
+                </div>
+
+                <!-- BEREGNET OPSUMMERING -->
+                <div class="bg-slate-800/80 p-3.5 rounded-2xl border border-slate-700/60 space-y-1.5 text-xs">
+                    <div class="flex justify-between text-slate-400">
+                        <span>Samlede faste udgifter:</span>
+                        <b id="modal-total-udgifter" class="text-red-400">0 kr.</b>
+                    </div>
+                    <div class="flex justify-between text-slate-200 text-sm font-bold pt-1 border-t border-slate-700/50">
+                        <span>Resulterende Rådighedsbeløb:</span>
+                        <b id="modal-resulterende-radighed" class="text-teal-400">0 kr.</b>
                     </div>
                 </div>
             </div>
 
-            <button onclick="closeModal('modal-faste-udgifter')" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold py-3 rounded-xl">
-                Gem & Luk
+            <button onclick="gemFasteUdgifterSkema()" class="w-full bg-teal-500 hover:bg-teal-600 text-white font-bold py-3.5 rounded-xl transition active:scale-98 shadow-lg shadow-teal-950/50">
+                Gem ændringer
             </button>
         </div>
     </div>
@@ -310,7 +322,13 @@
     <script>
         let appData = {
             indtaegt: 0,
-            fasteUdgifter: [],
+            fasteUdgifter: [
+                { id: 'u1', navn: 'Husleje / Realkredit', belob: 6500 },
+                { id: 'u2', navn: 'El, Vand & Varme', belob: 1200 },
+                { id: 'u3', navn: 'A-kasse & Fagforening', belob: 900 },
+                { id: 'u4', navn: 'Forsikringer', belob: 800 },
+                { id: 'u5', navn: 'Abonnementer & Stream', belob: 450 }
+            ],
             kasser: [
                 { id: 'k1', navn: 'Dagligvarer', maal: 5000, saldo: 1100 },
                 { id: 'k2', navn: 'Diverse', maal: 2000, saldo: 300 },
@@ -320,6 +338,8 @@
             ],
             transaktioner: []
         };
+
+        let tempFasteUdgifter = [];
 
         function triggerHaptic(type = 'click') {
             if ('vibrate' in navigator) {
@@ -482,6 +502,90 @@
             });
         }
 
+        // FASTE UDGIFTER MODAL HANDLERS
+        function toggleFasteUdgifterModal() {
+            triggerHaptic();
+            const modal = document.getElementById('modal-faste-udgifter');
+            modal.classList.toggle('hidden');
+            
+            if(!modal.classList.contains('hidden')) {
+                document.getElementById('fast-indtaegt-input').value = appData.indtaegt || '';
+                // Kopier eksisterende udgifter til arbejdsliste
+                tempFasteUdgifter = JSON.parse(JSON.stringify(appData.fasteUdgifter));
+                renderFasteUdgifterSkema();
+            }
+        }
+
+        function renderFasteUdgifterSkema() {
+            const skema = document.getElementById('faste-udgifter-skema');
+            skema.innerHTML = '';
+
+            if (tempFasteUdgifter.length === 0) {
+                skema.innerHTML = '<p class="text-xs text-slate-500 text-center py-2">Ingen faste udgifter tilføjet endnu.</p>';
+            } else {
+                tempFasteUdgifter.forEach((u, index) => {
+                    const row = document.createElement('div');
+                    row.className = 'flex gap-2 items-center';
+                    row.innerHTML = `
+                        <input type="text" value="${u.navn}" oninput="opdaterUdgiftNavn(${index}, this.value)" placeholder="Udgift navn" class="flex-1 bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-slate-100 focus:outline-none focus:border-teal-500">
+                        <input type="number" inputmode="decimal" value="${u.belob || ''}" oninput="opdaterUdgiftBelob(${index}, this.value)" placeholder="Kr." class="w-24 bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-slate-100 font-bold focus:outline-none focus:border-teal-500">
+                        <button onclick="fjernUdgiftRaekke(${index})" class="p-2 text-slate-500 hover:text-red-400 rounded-lg">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    `;
+                    skema.appendChild(row);
+                });
+            }
+
+            lucide.createIcons();
+            opdaterFastBudgetBeregning();
+        }
+
+        function tilfoejNyUdgiftRaekke() {
+            triggerHaptic();
+            tempFasteUdgifter.push({ id: 'u_' + Date.now(), navn: '', belob: 0 });
+            renderFasteUdgifterSkema();
+            // Sæt fokus på det nye felt
+            setTimeout(() => {
+                const inputs = document.querySelectorAll('#faste-udgifter-skema input[type="text"]');
+                if (inputs.length > 0) inputs[inputs.length - 1].focus();
+            }, 50);
+        }
+
+        function fjernUdgiftRaekke(index) {
+            triggerHaptic();
+            tempFasteUdgifter.splice(index, 1);
+            renderFasteUdgifterSkema();
+        }
+
+        function opdaterUdgiftNavn(index, val) {
+            tempFasteUdgifter[index].navn = val;
+        }
+
+        function opdaterUdgiftBelob(index, val) {
+            tempFasteUdgifter[index].belob = Number(val) || 0;
+            opdaterFastBudgetBeregning();
+        }
+
+        function opdaterFastBudgetBeregning() {
+            const indtaegt = Number(document.getElementById('fast-indtaegt-input').value) || 0;
+            const totalUdgifter = tempFasteUdgifter.reduce((acc, u) => acc + Number(u.belob || 0), 0);
+            const radighed = Math.max(0, indtaegt - totalUdgifter);
+
+            document.getElementById('modal-total-udgifter').innerText = totalUdgifter.toLocaleString('da-DK') + ' kr.';
+            document.getElementById('modal-resulterende-radighed').innerText = radighed.toLocaleString('da-DK') + ' kr.';
+        }
+
+        function gemFasteUdgifterSkema() {
+            appData.indtaegt = Number(document.getElementById('fast-indtaegt-input').value) || 0;
+            // Filtrer tomme rækker fra
+            appData.fasteUdgifter = tempFasteUdgifter.filter(u => u.navn.trim() !== '' || u.belob > 0);
+            
+            triggerHaptic('success');
+            saveData();
+            closeModal('modal-faste-udgifter');
+        }
+
         function openBrugPengeModal() {
             triggerHaptic();
             document.getElementById('modal-brug-penge').classList.remove('hidden');
@@ -497,16 +601,6 @@
         function openOpretKasseModal() {
             triggerHaptic();
             document.getElementById('modal-opret-kasse').classList.remove('hidden');
-        }
-
-        function toggleFasteUdgifterModal() {
-            triggerHaptic();
-            const modal = document.getElementById('modal-faste-udgifter');
-            modal.classList.toggle('hidden');
-            if(!modal.classList.contains('hidden')) {
-                document.getElementById('fast-indtaegt-input').value = appData.indtaegt || '';
-                renderFasteUdgifterListe();
-            }
         }
 
         function closeModal(id) {
@@ -626,56 +720,6 @@
                 triggerHaptic();
                 saveData();
             }
-        }
-
-        function opdaterIndtaegt(val) {
-            appData.indtaegt = Number(val) || 0;
-            saveData();
-        }
-
-        function tilfoejFastUdgift() {
-            const navn = document.getElementById('ny-udgift-navn').value;
-            const belob = Number(document.getElementById('ny-udgift-belob').value);
-
-            if (!navn || !belob) return;
-
-            appData.fasteUdgifter.push({
-                id: 'u_' + Date.now(),
-                navn: navn,
-                belob: belob
-            });
-
-            document.getElementById('ny-udgift-navn').value = '';
-            document.getElementById('ny-udgift-belob').value = '';
-            triggerHaptic();
-            saveData();
-            renderFasteUdgifterListe();
-        }
-
-        function sletFastUdgift(id) {
-            appData.fasteUdgifter = appData.fasteUdgifter.filter(u => u.id !== id);
-            triggerHaptic();
-            saveData();
-            renderFasteUdgifterListe();
-        }
-
-        function renderFasteUdgifterListe() {
-            const container = document.getElementById('faste-udgifter-liste');
-            container.innerHTML = '';
-
-            appData.fasteUdgifter.forEach(u => {
-                const row = document.createElement('div');
-                row.className = 'flex justify-between items-center bg-slate-800/60 p-2.5 rounded-xl text-xs';
-                row.innerHTML = `
-                    <span class="text-slate-200 font-medium">${u.navn}</span>
-                    <div class="flex items-center gap-2">
-                        <span class="font-bold text-slate-300">${Number(u.belob).toLocaleString('da-DK')} kr.</span>
-                        <button onclick="sletFastUdgift('${u.id}')" class="text-slate-500 hover:text-red-400"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
-                    </div>
-                `;
-                container.appendChild(row);
-            });
-            lucide.createIcons();
         }
 
         window.addEventListener('DOMContentLoaded', () => {
