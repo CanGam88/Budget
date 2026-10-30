@@ -6,12 +6,12 @@
     <title>Budget & Kasser</title>
     
     <!-- PWA / Web App Settings -->
-    <meta name="theme-color" content="#090d16">
+    <meta name="theme-color" content="#0b111e">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIkJ1ZGdldCAmIEthc3NlciIsCiAgInNob3J0X25hbWUiOiAiQnVkZ2V0IiwKICAic3RhcnRfdXJsIjogIi4vIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjMDkwZDE2IiwKICAidGhlbWVfY29sb3IiOiAiIzA5MGQxNiIKfQ==">
+    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIkJ1ZGdldCAmIEthc3NlciIsCiAgInNob3J0X25hbWUiOiAiQnVkZ2V0IiwKICAic3RhcnRfdXJsIjogIi4vIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjMGIxMTFlIiwKICAidGhlbWVfY29sb3IiOiAiIzBiMTExZSIKfQ==">
 
-    <!-- Tailwind CSS & Lucide Icons -->
+    <!-- Tailwind CSS, Lucide Icons & Confetti -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -21,13 +21,14 @@
             theme: {
                 extend: {
                     colors: {
-                        darkBg: '#090d16',
-                        cardBg: '#131c2e',
+                        darkBg: '#0b111e',
+                        cardBg: '#111927',
                         cardBorder: '#1e293b',
-                        accentGreen: '#10b981',
+                        accentTeal: '#2dd4bf',
+                        accentCyan: '#38bdf8',
                         accentRed: '#ef4444',
-                        accentBlue: '#3b82f6',
                         accentPurple: '#8b5cf6',
+                        accentEmerald: '#10b981',
                         accentAmber: '#f59e0b',
                     }
                 }
@@ -37,27 +38,26 @@
 
     <style>
         body {
-            background-color: #090d16;
+            background-color: #0b111e;
             color: #f8fafc;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             -webkit-tap-highlight-color: transparent;
             user-select: none;
-            padding-bottom: 90px;
+            padding-bottom: 95px;
         }
         
         .glass-panel {
-            background: rgba(19, 28, 46, 0.85);
+            background: rgba(17, 25, 39, 0.9);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.07);
         }
 
         .modal-bg {
-            background: rgba(5, 8, 15, 0.85);
-            backdrop-filter: blur(8px);
+            background: rgba(5, 9, 16, 0.88);
+            backdrop-filter: blur(10px);
         }
 
-        /* Hide scrollbars but keep touch scrolling */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
@@ -65,15 +65,15 @@
 <body class="min-h-screen flex flex-col justify-between">
 
     <!-- TOP HEADER -->
-    <header class="sticky top-0 z-30 glass-panel px-4 py-3 flex justify-between items-center border-b border-slate-800">
+    <header class="sticky top-0 z-30 glass-panel px-4 py-3 flex justify-between items-center border-b border-slate-800/80">
         <div>
-            <h1 class="text-lg font-bold bg-gradient-to-r from-emerald-400 to-blue-500 bg-clip-text text-transparent flex items-center gap-2">
-                <i data-lucide="wallet" class="w-5 h-5 text-emerald-400"></i>
+            <h1 class="text-xl font-extrabold bg-gradient-to-r from-teal-400 to-sky-400 bg-clip-text text-transparent flex items-center gap-2">
+                <i data-lucide="wallet" class="w-5 h-5 text-teal-400"></i>
                 Budget & Kasser
             </h1>
-            <p id="current-date-text" class="text-xs text-slate-400">Indlæser dato...</p>
+            <p id="current-date-text" class="text-xs text-slate-400">fredag 30. oktober</p>
         </div>
-        <button onclick="toggleFasteUdgifterModal()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition flex items-center gap-1 text-xs font-medium">
+        <button onclick="toggleFasteUdgifterModal()" class="p-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 transition flex items-center gap-1.5 text-xs font-semibold border border-slate-700/50">
             <i data-lucide="sliders" class="w-4 h-4 text-slate-400"></i> Fast Budget
         </button>
     </header>
@@ -85,11 +85,11 @@
         <section class="glass-panel p-5 rounded-3xl relative overflow-hidden shadow-xl border border-slate-800/80">
             <div class="flex justify-between items-start mb-2">
                 <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Månedens Rådighedsbeløb</span>
-                <span id="month-progress-badge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">Dag X i måneden</span>
+                <span id="month-progress-badge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-500/10 text-sky-400 border border-sky-500/20">Dag X i måneden</span>
             </div>
             
             <div class="flex items-baseline gap-2 my-1">
-                <span id="radighed-belob" class="text-3xl font-black text-emerald-400 tracking-tight">0 kr.</span>
+                <span id="radighed-belob" class="text-3xl font-black text-teal-400 tracking-tight">0 kr.</span>
                 <span class="text-xs text-slate-400">tilbage i alt</span>
             </div>
 
@@ -99,9 +99,9 @@
                     <span>Fordelt i kasser: <b id="fordelt-belob" class="text-slate-200">0 kr.</b></span>
                     <span>Ufordelt: <b id="ufordelt-belob" class="text-amber-400">0 kr.</b></span>
                 </div>
-                <div class="w-full bg-slate-800/80 rounded-full h-2.5 overflow-hidden flex">
-                    <div id="bar-fordelt" class="bg-emerald-500 h-full transition-all duration-500" style="width: 0%"></div>
-                    <div id="bar-ufordelt" class="bg-amber-500 h-full transition-all duration-500" style="width: 0%"></div>
+                <div class="w-full bg-slate-900 rounded-full h-2.5 overflow-hidden flex border border-slate-800">
+                    <div id="bar-fordelt" class="bg-teal-400 h-full transition-all duration-500" style="width: 0%"></div>
+                    <div id="bar-ufordelt" class="bg-amber-400 h-full transition-all duration-500" style="width: 0%"></div>
                 </div>
             </div>
         </section>
@@ -124,7 +124,7 @@
         <section class="space-y-3 pt-2">
             <div class="flex justify-between items-center px-1">
                 <h2 class="text-sm font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-                    <i data-lucide="history" class="w-4 h-4 text-blue-400"></i> Seneste Aktivitet
+                    <i data-lucide="history" class="w-4 h-4 text-sky-400"></i> Seneste Aktivitet
                 </h2>
             </div>
             <div id="transaktions-container" class="glass-panel rounded-2xl p-3 divide-y divide-slate-800/60 max-h-56 overflow-y-auto no-scrollbar">
@@ -135,19 +135,19 @@
     </main>
 
     <!-- FIXED BOTTOM BAR (S24 ERGONOMI) -->
-    <nav class="fixed bottom-0 left-0 right-0 z-40 glass-panel border-t border-slate-800/80 p-3 pb-6">
+    <nav class="fixed bottom-0 left-0 right-0 z-40 glass-panel border-t border-slate-800/90 p-3 pb-6">
         <div class="max-w-md mx-auto grid grid-cols-3 gap-2">
-            <button onclick="openBrugPengeModal()" class="bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white font-bold py-3 px-2 rounded-2xl flex flex-col items-center justify-center gap-1 shadow-lg shadow-red-950/40 active:scale-95 transition">
+            <button onclick="openBrugPengeModal()" class="bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-600 hover:to-red-700 text-white font-bold py-3.5 px-2 rounded-2xl flex flex-col items-center justify-center gap-1 shadow-lg shadow-red-950/50 active:scale-95 transition">
                 <i data-lucide="minus-circle" class="w-5 h-5"></i>
                 <span class="text-xs">💸 Brug penge</span>
             </button>
             
-            <button onclick="openTilfoejPengeModal()" class="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold py-3 px-2 rounded-2xl flex flex-col items-center justify-center gap-1 shadow-lg shadow-emerald-950/40 active:scale-95 transition">
+            <button onclick="openTilfoejPengeModal()" class="bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-600 hover:to-emerald-700 text-white font-bold py-3.5 px-2 rounded-2xl flex flex-col items-center justify-center gap-1 shadow-lg shadow-teal-950/50 active:scale-95 transition">
                 <i data-lucide="plus-circle" class="w-5 h-5"></i>
                 <span class="text-xs">➕ Tilføj / Overfør</span>
             </button>
 
-            <button onclick="openOpretKasseModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold py-3 px-2 rounded-2xl flex flex-col items-center justify-center gap-1 border border-slate-700 active:scale-95 transition">
+            <button onclick="openOpretKasseModal()" class="bg-slate-800/90 hover:bg-slate-700 text-slate-200 font-semibold py-3.5 px-2 rounded-2xl flex flex-col items-center justify-center gap-1 border border-slate-700/60 active:scale-95 transition">
                 <i data-lucide="folder-plus" class="w-5 h-5 text-purple-400"></i>
                 <span class="text-xs">📦 Ny Kasse</span>
             </button>
@@ -199,7 +199,7 @@
         <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 space-y-4 shadow-2xl animate-in slide-in-from-bottom duration-200">
             <div class="flex justify-between items-center border-b border-slate-800 pb-3">
                 <h3 class="font-bold text-slate-100 flex items-center gap-2">
-                    <i data-lucide="piggy-bank" class="w-5 h-5 text-emerald-400"></i> Tilføj penge til kasse
+                    <i data-lucide="piggy-bank" class="w-5 h-5 text-teal-400"></i> Tilføj penge til kasse
                 </h3>
                 <button onclick="closeModal('modal-tilfoej-penge')" class="p-1 rounded-lg text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
             </div>
@@ -207,21 +207,21 @@
             <div class="space-y-3">
                 <div>
                     <label class="text-xs text-slate-400 font-medium block mb-1">Vælg kasse</label>
-                    <select id="tilfoej-kasse-select" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-slate-100 text-sm focus:outline-none focus:border-emerald-500"></select>
+                    <select id="tilfoej-kasse-select" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-slate-100 text-sm focus:outline-none focus:border-teal-500"></select>
                 </div>
 
                 <div>
                     <label class="text-xs text-slate-400 font-medium block mb-1">Beløb (kr.)</label>
-                    <input type="number" id="tilfoej-belob-input" inputmode="decimal" placeholder="0" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-2xl font-bold text-emerald-400 focus:outline-none focus:border-emerald-500">
+                    <input type="number" id="tilfoej-belob-input" inputmode="decimal" placeholder="0" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-2xl font-bold text-teal-400 focus:outline-none focus:border-teal-500">
                 </div>
 
                 <div>
                     <label class="text-xs text-slate-400 font-medium block mb-1">Tekst / Bemærkning (Valgfri)</label>
-                    <input type="text" id="tilfoej-tekst-input" placeholder="f.eks. Månedlig indsætning, Mellem-overførsel" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-slate-100 text-sm focus:outline-none focus:border-emerald-500">
+                    <input type="text" id="tilfoej-tekst-input" placeholder="f.eks. Månedlig indsætning, Mellem-overførsel" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-slate-100 text-sm focus:outline-none focus:border-teal-500">
                 </div>
             </div>
 
-            <button onclick="gemTilfoejPenge()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3.5 rounded-xl transition active:scale-98 shadow-lg shadow-emerald-950/50">
+            <button onclick="gemTilfoejPenge()" class="w-full bg-teal-500 hover:bg-teal-600 text-white font-bold py-3.5 rounded-xl transition active:scale-98 shadow-lg shadow-teal-950/50">
                 Indsæt beløb
             </button>
         </div>
@@ -265,7 +265,7 @@
         <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 space-y-4 shadow-2xl max-h-[85vh] flex flex-col">
             <div class="flex justify-between items-center border-b border-slate-800 pb-3">
                 <h3 class="font-bold text-slate-100 flex items-center gap-2">
-                    <i data-lucide="sliders" class="w-5 h-5 text-emerald-400"></i> Faste Indtægter & Udgifter
+                    <i data-lucide="sliders" class="w-5 h-5 text-teal-400"></i> Faste Indtægter & Udgifter
                 </h3>
                 <button onclick="closeModal('modal-faste-udgifter')" class="p-1 rounded-lg text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
             </div>
@@ -273,7 +273,7 @@
             <div class="space-y-4 overflow-y-auto pr-1 no-scrollbar flex-1">
                 <div>
                     <label class="text-xs text-slate-400 font-medium block mb-1">Månedlig Indtægt (Udbetalt løn i alt)</label>
-                    <input type="number" id="fast-indtaegt-input" inputmode="decimal" onchange="opdaterIndtaegt(this.value)" placeholder="0" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-xl font-bold text-emerald-400">
+                    <input type="number" id="fast-indtaegt-input" inputmode="decimal" onchange="opdaterIndtaegt(this.value)" placeholder="0" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-xl font-bold text-teal-400">
                 </div>
 
                 <hr class="border-slate-800">
@@ -284,7 +284,7 @@
                     <div class="flex gap-2">
                         <input type="text" id="ny-udgift-navn" placeholder="Tekst (f.eks. Husleje)" class="flex-1 bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-slate-100">
                         <input type="number" id="ny-udgift-belob" inputmode="decimal" placeholder="Kr." class="w-24 bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-slate-100">
-                        <button onclick="tilfoejFastUdgift()" class="bg-emerald-600 hover:bg-emerald-700 text-white p-2.5 rounded-xl"><i data-lucide="plus" class="w-4 h-4"></i></button>
+                        <button onclick="tilfoejFastUdgift()" class="bg-teal-600 hover:bg-teal-700 text-white p-2.5 rounded-xl"><i data-lucide="plus" class="w-4 h-4"></i></button>
                     </div>
 
                     <div id="faste-udgifter-liste" class="space-y-1.5 pt-2">
@@ -301,13 +301,12 @@
 
     <!-- LOGIK (JAVASCRIPT) -->
     <script>
-        // STANDARD STATE
         let appData = {
             indtaegt: 0,
             fasteUdgifter: [],
             kasser: [
-                { id: 'k1', navn: 'Dagligvarer', maal: 5000, saldo: 3500 },
-                { id: 'k2', navn: 'Diverse', maal: 2000, saldo: 1200 },
+                { id: 'k1', navn: 'Dagligvarer', maal: 5000, saldo: 1100 },
+                { id: 'k2', navn: 'Diverse', maal: 2000, saldo: 300 },
                 { id: 'k3', navn: 'Flytte-forbedringer', maal: 10000, saldo: 2500 },
                 { id: 'k4', navn: 'Flytte-opsparing', maal: 15000, saldo: 6000 },
                 { id: 'k5', navn: 'Opsparing', maal: 20000, saldo: 12000 }
@@ -315,7 +314,6 @@
             transaktioner: []
         };
 
-        // VIBRATION FEEDBACK (S24)
         function triggerHaptic(type = 'click') {
             if ('vibrate' in navigator) {
                 if (type === 'click') navigator.vibrate(25);
@@ -323,7 +321,6 @@
             }
         }
 
-        // LOAD DATA
         function loadData() {
             const saved = localStorage.getItem('budget_pwa_data');
             if (saved) {
@@ -334,15 +331,12 @@
             renderApp();
         }
 
-        // SAVE DATA
         function saveData() {
             localStorage.setItem('budget_pwa_data', JSON.stringify(appData));
             renderApp();
         }
 
-        // RENDER HELE APPEN
         function renderApp() {
-            // 1. Datoer
             const now = new Date();
             const dateOptions = { weekday: 'long', day: 'numeric', month: 'long' };
             document.getElementById('current-date-text').innerText = now.toLocaleDateString('da-DK', dateOptions);
@@ -350,11 +344,9 @@
             const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
             document.getElementById('month-progress-badge').innerText = `Dag ${now.getDate()} i måneden (${daysInMonth - now.getDate()} dage tilbage)`;
 
-            // 2. Beregn Total Faste Udgifter & Rådighedsbeløb
             const samletFaste = appData.fasteUdgifter.reduce((acc, u) => acc + Number(u.belob), 0);
             const radighedsBelob = Math.max(0, appData.indtaegt - samletFaste);
 
-            // 3. Beregn fordelt i kasser
             const samletIKasser = appData.kasser.reduce((acc, k) => acc + Number(k.saldo), 0);
             const ufordelt = radighedsBelob - samletIKasser;
 
@@ -362,14 +354,13 @@
             document.getElementById('fordelt-belob').innerText = samletIKasser.toLocaleString('da-DK') + ' kr.';
             document.getElementById('ufordelt-belob').innerText = ufordelt.toLocaleString('da-DK') + ' kr.';
 
-            // Progress Barer
             const fordeltPct = radighedsBelob > 0 ? Math.min(100, (samletIKasser / radighedsBelob) * 100) : 0;
             const ufordeltPct = radighedsBelob > 0 ? Math.max(0, (ufordelt / radighedsBelob) * 100) : 0;
             
             document.getElementById('bar-fordelt').style.width = fordeltPct + '%';
             document.getElementById('bar-ufordelt').style.width = ufordeltPct + '%';
 
-            // 4. Render Kasser
+            // Render Kasser
             const kasserContainer = document.getElementById('kasser-container');
             kasserContainer.innerHTML = '';
             document.getElementById('kasser-antal').innerText = `${appData.kasser.length} kasser`;
@@ -377,6 +368,19 @@
             appData.kasser.forEach(k => {
                 const pct = k.maal > 0 ? Math.min(100, Math.round((k.saldo / k.maal) * 100)) : 0;
                 const isGoalReached = k.maal > 0 && k.saldo >= k.maal;
+                const isLow = k.maal > 0 && pct < 25;
+
+                // Dynamisk farve til progress bar
+                let barColorClass = 'bg-purple-500';
+                let pctColorClass = 'text-slate-400';
+
+                if (isLow) {
+                    barColorClass = 'bg-rose-500 animate-pulse';
+                    pctColorClass = 'text-rose-400 font-bold';
+                } else if (isGoalReached) {
+                    barColorClass = 'bg-emerald-400';
+                    pctColorClass = 'text-emerald-400 font-bold';
+                }
 
                 const card = document.createElement('div');
                 card.className = 'glass-panel p-4 rounded-2xl border border-slate-800/80 relative space-y-2';
@@ -387,6 +391,7 @@
                             <div class="flex items-center gap-1.5">
                                 <h3 class="font-bold text-slate-100">${k.navn}</h3>
                                 ${isGoalReached ? '<span class="text-[10px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-bold px-1.5 py-0.5 rounded-full">🎉 Mål Nået!</span>' : ''}
+                                ${isLow ? '<span class="text-[10px] bg-rose-500/20 text-rose-400 border border-rose-500/30 font-bold px-1.5 py-0.5 rounded-full">⚠️ Lav Saldo</span>' : ''}
                             </div>
                             <p class="text-xs text-slate-400">
                                 ${k.maal > 0 ? `Mål: ${Number(k.maal).toLocaleString('da-DK')} kr.` : 'Intet fast mål'}
@@ -404,12 +409,12 @@
 
                     ${k.maal > 0 ? `
                         <div class="space-y-1">
-                            <div class="flex justify-between text-[11px] text-slate-400 font-medium">
-                                <span>Fremskridt</span>
-                                <span class="${isGoalReached ? 'text-emerald-400 font-bold' : ''}">${pct}%</span>
+                            <div class="flex justify-between text-[11px] font-medium">
+                                <span class="text-slate-400">Fremskridt</span>
+                                <span class="${pctColorClass}">${pct}%</span>
                             </div>
-                            <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
-                                <div class="${isGoalReached ? 'bg-emerald-400' : 'bg-purple-500'} h-full transition-all duration-500" style="width: ${pct}%"></div>
+                            <div class="w-full bg-slate-900 rounded-full h-2 overflow-hidden border border-slate-800">
+                                <div class="${barColorClass} h-full transition-all duration-500" style="width: ${pct}%"></div>
                             </div>
                         </div>
                     ` : ''}
@@ -417,7 +422,7 @@
                 kasserContainer.appendChild(card);
             });
 
-            // 5. Render Transaktioner
+            // Render Transaktioner
             const txContainer = document.getElementById('transaktions-container');
             txContainer.innerHTML = '';
 
@@ -435,7 +440,7 @@
                             <p class="text-[10px] text-slate-500">${t.dato}</p>
                         </div>
                         <div class="flex items-center gap-2">
-                            <span class="font-bold ${isMinus ? 'text-red-400' : 'text-emerald-400'}">
+                            <span class="font-bold ${isMinus ? 'text-red-400' : 'text-teal-400'}">
                                 ${isMinus ? '-' : '+'}${Number(t.belob).toLocaleString('da-DK')} kr.
                             </span>
                             <button onclick="sletTransaktion('${t.id}')" class="text-slate-600 hover:text-red-400 p-1">
@@ -447,12 +452,10 @@
                 });
             }
 
-            // Update Select Dropdowns
             updateSelectOptions();
             lucide.createIcons();
         }
 
-        // UPDATE SELECT DROPDOWNS
         function updateSelectOptions() {
             const brugSelect = document.getElementById('brug-kasse-select');
             const tilfoejSelect = document.getElementById('tilfoej-kasse-select');
@@ -473,7 +476,6 @@
             });
         }
 
-        // MODAL HANDLERS
         function openBrugPengeModal() {
             triggerHaptic();
             document.getElementById('modal-brug-penge').classList.remove('hidden');
@@ -505,7 +507,6 @@
             document.getElementById(id).classList.add('hidden');
         }
 
-        // QUICK AMOUNT HELPER
         function addQuickAmount(inputId, val) {
             triggerHaptic();
             const input = document.getElementById(inputId);
@@ -513,7 +514,6 @@
             input.value = current + val;
         }
 
-        // GEM BRUG PENGE
         function gemBrugPenge() {
             const kasseId = document.getElementById('brug-kasse-select').value;
             const belob = Number(document.getElementById('brug-belob-input').value);
@@ -542,7 +542,6 @@
             }
         }
 
-        // GEM TILFØJ PENGE
         function gemTilfoejPenge() {
             const kasseId = document.getElementById('tilfoej-kasse-select').value;
             const belob = Number(document.getElementById('tilfoej-belob-input').value);
@@ -555,7 +554,6 @@
                 const gammelSaldo = kasse.saldo;
                 kasse.saldo += belob;
 
-                // Tjek om mål er opnået for konfetti & haptik fejring!
                 if (kasse.maal > 0 && gammelSaldo < kasse.maal && kasse.saldo >= kasse.maal) {
                     confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
                     triggerHaptic('success');
@@ -580,7 +578,6 @@
             }
         }
 
-        // GEM NY KASSE
         function gemNyKasse() {
             const navn = document.getElementById('ny-kasse-navn').value;
             const maal = Number(document.getElementById('ny-kasse-maal').value) || 0;
@@ -603,7 +600,6 @@
             document.getElementById('ny-kasse-saldo').value = '';
         }
 
-        // SLET KASSE
         function sletKasse(id) {
             if (confirm('Vil du slette denne kasse?')) {
                 appData.kasser = appData.kasser.filter(k => k.id !== id);
@@ -612,7 +608,6 @@
             }
         }
 
-        // SLET TRANSAKTION (GENOPRET SALDO)
         function sletTransaktion(id) {
             const tx = appData.transaktioner.find(t => t.id === id);
             if (tx && confirm('Slet denne postering og rulle beløbet tilbage?')) {
@@ -627,7 +622,6 @@
             }
         }
 
-        // FASTE UDGIFTER LOGIK
         function opdaterIndtaegt(val) {
             appData.indtaegt = Number(val) || 0;
             saveData();
@@ -678,7 +672,6 @@
             lucide.createIcons();
         }
 
-        // INIT UPON LOAD
         window.addEventListener('DOMContentLoaded', () => {
             loadData();
         });
