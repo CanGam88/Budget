@@ -5,11 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Budget & Kasser</title>
     
+    <!-- App Ikoner -->
+    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+    <link rel="apple-touch-icon" href="icon-192.png">
+
+    <!-- PWA Web Manifest -->
+    <link rel="manifest" href="manifest.json">
+
     <!-- PWA / Web App Settings -->
     <meta name="theme-color" content="#0b111e">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIkJ1ZGdldCAmIEthc3NlciIsCiAgInNob3J0X25hbWUiOiAiQnVkZ2V0IiwKICAic3RhcnRfdXJsIjogIi4vIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjMGIxMTFlIiwKICAidGhlbWVfY29sb3IiOiAiIzBiMTExZSIKfQ==">
 
     <!-- Tailwind CSS, Lucide Icons & Confetti -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -44,6 +50,7 @@
             -webkit-tap-highlight-color: transparent;
             user-select: none;
             padding-bottom: 95px;
+            overscroll-behavior-y: none; /* Deaktiverer utilsigtede træk-ned genindlæsninger på mobil */
         }
         
         .glass-panel {
@@ -370,7 +377,6 @@
                 const isGoalReached = k.maal > 0 && k.saldo >= k.maal;
                 const isLow = k.maal > 0 && pct < 25;
 
-                // Dynamisk farve til progress bar
                 let barColorClass = 'bg-purple-500';
                 let pctColorClass = 'text-slate-400';
 
