@@ -1,715 +1,687 @@
 <!DOCTYPE html>
-<html lang="da" class="dark">
+<html lang="da">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Budgetopgørelse til Banken - Lasse & Mette</title>
-    <!-- Tailwind CSS CDN -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Budget & Kasser</title>
+    
+    <!-- PWA / Web App Settings -->
+    <meta name="theme-color" content="#090d16">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIkJ1ZGdldCAmIEthc3NlciIsCiAgInNob3J0X25hbWUiOiAiQnVkZ2V0IiwKICAic3RhcnRfdXJsIjogIi4vIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjMDkwZDE2IiwKICAidGhlbWVfY29sb3IiOiAiIzA5MGQxNiIKfQ==">
+
+    <!-- Tailwind CSS & Lucide Icons -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
     <script>
         tailwind.config = {
-            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
-                        bankblue: '#0a2540',
-                        bankaccent: '#2563eb',
-                        darkcard: '#1e293b',
-                        darkbg: '#0f172a',
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        darkBg: '#090d16',
+                        cardBg: '#131c2e',
+                        cardBorder: '#1e293b',
+                        accentGreen: '#10b981',
+                        accentRed: '#ef4444',
+                        accentBlue: '#3b82f6',
+                        accentPurple: '#8b5cf6',
+                        accentAmber: '#f59e0b',
                     }
                 }
             }
         }
     </script>
-    <!-- FontAwesome icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <style>
         body {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            transition: background-color 0.3s, color 0.3s;
+            background-color: #090d16;
+            color: #f8fafc;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            padding-bottom: 90px;
+        }
+        
+        .glass-panel {
+            background: rgba(19, 28, 46, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
         }
 
-        /* Print styles for Bank PDF export */
-        @media print {
-            .no-print {
-                display: none !important;
-            }
-            body {
-                background-color: #ffffff !important;
-                color: #000000 !important;
-                padding: 0 !important;
-            }
-            .print-card {
-                background-color: #ffffff !important;
-                border: 1px solid #cbd5e1 !important;
-                box-shadow: none !important;
-                color: #000000 !important;
-            }
-            .print-text-dark {
-                color: #0f172a !important;
-            }
-            .print-text-muted {
-                color: #475569 !important;
-            }
-            input {
-                background-color: #f8fafc !important;
-                color: #000000 !important;
-                border: 1px solid #cbd5e1 !important;
-            }
+        .modal-bg {
+            background: rgba(5, 8, 15, 0.85);
+            backdrop-filter: blur(8px);
         }
 
-        input[type="number"]::-webkit-inner-spin-button,
-        input[type="number"]::-webkit-outer-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-        input[type="number"] {
-            -moz-appearance: textfield;
-        }
+        /* Hide scrollbars but keep touch scrolling */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
-<body class="bg-darkbg text-slate-100 min-h-screen p-4 md:p-8">
+<body class="min-h-screen flex flex-col justify-between">
 
-    <div class="max-w-7xl mx-auto space-y-6">
-        
-        <!-- Header / Control bar -->
-        <header class="flex flex-col md:flex-row justify-between items-start md:items-center bg-darkcard print-card p-6 rounded-2xl border border-slate-700/50 shadow-xl gap-4">
-            <div>
-                <div class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-blue-400 mb-1">
-                    <i class="fa-solid fa-file-contract"></i> Kreditindstilling & Budgetgrundlag
-                </div>
-                <h1 class="text-2xl md:text-3xl font-bold text-slate-100 print-text-dark">
-                    Huskøb & Privatøkonomi: Lasse & Mette
-                </h1>
-                <p class="text-slate-400 print-text-muted text-sm mt-1">
-                    Kommende Ejendom: Parcelhus til 2.800.000 kr. | Egenkapital: 300.000 kr. (Friværdi Andelsbolig)
-                </p>
+    <!-- TOP HEADER -->
+    <header class="sticky top-0 z-30 glass-panel px-4 py-3 flex justify-between items-center border-b border-slate-800">
+        <div>
+            <h1 class="text-lg font-bold bg-gradient-to-r from-emerald-400 to-blue-500 bg-clip-text text-transparent flex items-center gap-2">
+                <i data-lucide="wallet" class="w-5 h-5 text-emerald-400"></i>
+                Budget & Kasser
+            </h1>
+            <p id="current-date-text" class="text-xs text-slate-400">Indlæser dato...</p>
+        </div>
+        <button onclick="toggleFasteUdgifterModal()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition flex items-center gap-1 text-xs font-medium">
+            <i data-lucide="sliders" class="w-4 h-4 text-slate-400"></i> Fast Budget
+        </button>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="p-4 space-y-6 max-w-md mx-auto w-full">
+
+        <!-- OVERSIGT KORT (RÅDIGHEDSBELØB) -->
+        <section class="glass-panel p-5 rounded-3xl relative overflow-hidden shadow-xl border border-slate-800/80">
+            <div class="flex justify-between items-start mb-2">
+                <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Månedens Rådighedsbeløb</span>
+                <span id="month-progress-badge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">Dag X i måneden</span>
             </div>
-
-            <!-- Action buttons (Hidden on Print) -->
-            <div class="flex flex-wrap items-center gap-3 no-print">
-                <button onclick="toggleTheme()" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-200 text-sm font-medium rounded-xl transition flex items-center gap-2 border border-slate-600">
-                    <i class="fa-solid fa-circle-half-stroke" id="theme-icon"></i> <span id="theme-text">Lyst Tema</span>
-                </button>
-                <button onclick="window.print()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded-xl shadow-lg shadow-blue-500/20 transition flex items-center gap-2">
-                    <i class="fa-solid fa-print"></i> Gem PDF / Udskriv
-                </button>
-                <button onclick="resetToDefaults()" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-400 text-xs font-medium rounded-xl transition border border-slate-700">
-                    <i class="fa-solid fa-rotate-left"></i> Nulstil
-                </button>
-            </div>
-        </header>
-
-        <!-- Executive Bank KPI Summary Card -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
             
-            <div class="bg-darkcard print-card p-5 rounded-2xl border border-slate-700/50 shadow-md">
-                <div class="text-xs font-semibold text-slate-400 print-text-muted uppercase">Samlet Udbetalt Indtægt</div>
-                <div class="text-2xl font-bold text-slate-100 print-text-dark mt-1" id="kpi-total-income">48.000 kr.</div>
-                <div class="text-xs text-slate-400 print-text-muted mt-2 flex justify-between">
-                    <span>Lasse: <strong class="text-emerald-400" id="kpi-inc-lasse">25.000 kr.</strong></span>
-                    <span>Mette: <strong class="text-emerald-400" id="kpi-inc-mette">23.000 kr.</strong></span>
-                </div>
+            <div class="flex items-baseline gap-2 my-1">
+                <span id="radighed-belob" class="text-3xl font-black text-emerald-400 tracking-tight">0 kr.</span>
+                <span class="text-xs text-slate-400">tilbage i alt</span>
             </div>
 
-            <div class="bg-darkcard print-card p-5 rounded-2xl border border-slate-700/50 shadow-md">
-                <div class="text-xs font-semibold text-slate-400 print-text-muted uppercase">Samlede Faste Udgifter</div>
-                <div class="text-2xl font-bold text-amber-400 mt-1" id="kpi-total-fixed">0 kr.</div>
-                <div class="text-xs text-slate-400 print-text-muted mt-2">
-                    Inkl. boliglån, drift, biler & faste
+            <!-- Fordelt vs Resterende progress bar -->
+            <div class="mt-4 space-y-1.5">
+                <div class="flex justify-between text-xs text-slate-400 font-medium">
+                    <span>Fordelt i kasser: <b id="fordelt-belob" class="text-slate-200">0 kr.</b></span>
+                    <span>Ufordelt: <b id="ufordelt-belob" class="text-amber-400">0 kr.</b></span>
+                </div>
+                <div class="w-full bg-slate-800/80 rounded-full h-2.5 overflow-hidden flex">
+                    <div id="bar-fordelt" class="bg-emerald-500 h-full transition-all duration-500" style="width: 0%"></div>
+                    <div id="bar-ufordelt" class="bg-amber-500 h-full transition-all duration-500" style="width: 0%"></div>
                 </div>
             </div>
+        </section>
 
-            <div class="bg-darkcard print-card p-5 rounded-2xl border border-slate-700/50 shadow-md">
-                <div class="text-xs font-semibold text-slate-400 print-text-muted uppercase">Månedligt Rådighedsbeløb</div>
-                <div class="text-2xl font-bold text-emerald-400 mt-1" id="kpi-disposable">0 kr.</div>
-                <div class="text-xs text-slate-400 print-text-muted mt-2">
-                    Til mad, husholdning & variable
-                </div>
+        <!-- KASSER (LISTE) -->
+        <section class="space-y-3">
+            <div class="flex justify-between items-center px-1">
+                <h2 class="text-sm font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                    <i data-lucide="boxes" class="w-4 h-4 text-purple-400"></i> Dine Kasser
+                </h2>
+                <span id="kasser-antal" class="text-xs text-slate-500">0 kasser</span>
             </div>
 
-            <div class="bg-darkcard print-card p-5 rounded-2xl border border-blue-500/30 shadow-md bg-gradient-to-br from-darkcard to-blue-950/20">
-                <div class="text-xs font-semibold text-blue-400 uppercase">Frit Månedligt Overskud</div>
-                <div class="text-2xl font-bold text-blue-400 mt-1" id="kpi-net-surplus">0 kr.</div>
-                <div class="text-xs text-slate-400 print-text-muted mt-2">
-                    Efter fast sat madbudget & diverse
-                </div>
+            <div id="kasser-container" class="space-y-3">
+                <!-- Dynamiske kasser indsættes her via JS -->
             </div>
+        </section>
 
-        </div>
-
-        <!-- Person Breakdown Grid (Lasse, Mette, Fælles Bolig) -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-            <!-- COLUMN 1: LASSE -->
-            <div class="bg-darkcard print-card p-6 rounded-2xl border border-slate-700/50 shadow-lg space-y-4">
-                <div class="flex justify-between items-center border-b border-slate-700 pb-3">
-                    <div class="flex items-center gap-2">
-                        <div class="w-8 h-8 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center font-bold">L</div>
-                        <h2 class="text-lg font-bold text-slate-100 print-text-dark">Lasse</h2>
-                    </div>
-                    <span class="text-xs font-semibold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
-                        Netto: <span id="txt-inc-lasse">25.000 kr.</span>
-                    </span>
-                </div>
-
-                <div class="space-y-3 text-sm">
-                    <div>
-                        <label class="block text-xs text-slate-400 print-text-muted mb-1">Udbetalt Løn / Måned (kr.)</label>
-                        <input type="number" id="in-inc-lasse" value="25000" oninput="recalculate()" class="w-full bg-darkbg print-card border border-slate-600 rounded-lg p-2 font-medium text-slate-100">
-                    </div>
-
-                    <div class="pt-2 border-t border-slate-800 flex justify-between items-center">
-                        <span class="text-xs font-semibold text-slate-400 print-text-muted uppercase">Faste Udgifter & Transport</span>
-                        <button onclick="addItem('lasse')" class="no-print text-xs text-blue-400 hover:text-blue-300 font-medium flex items-center gap-1">
-                            <i class="fa-solid fa-plus-circle"></i> Tilføj punkt
-                        </button>
-                    </div>
-
-                    <!-- Dynamic Expenses Container for Lasse -->
-                    <div id="items-container-lasse" class="space-y-2"></div>
-
-                    <!-- Toggle for Forbrugslån Lasse -->
-                    <div class="p-3 bg-slate-800/50 print-card rounded-xl border border-slate-700/80 mt-2 space-y-2">
-                        <div class="flex items-center justify-between">
-                            <label for="chk-debt-lasse" class="text-xs text-slate-300 print-text-dark font-medium cursor-pointer">Inkluder eksisterende gæld/afdrag i budget</label>
-                            <input type="checkbox" id="chk-debt-lasse" onchange="recalculate()" class="w-4 h-4 rounded text-blue-600">
-                        </div>
-                        <div id="debt-input-container-lasse" class="hidden flex justify-between items-center gap-2 pt-1">
-                            <span class="text-xs text-slate-400">Gældsydelse pr. md. (kr.)</span>
-                            <input type="number" id="in-debt-lasse" value="1637" oninput="recalculate()" class="w-28 text-right bg-darkbg print-card border border-slate-600 rounded-lg p-1 text-slate-100 text-xs">
-                        </div>
-                        <p class="text-[11px] text-slate-400 print-text-muted italic">
-                            *Note: Sæt flueben hvis lån afvikles løbende. Fjern hvis det indfries før køb.
-                        </p>
-                    </div>
-                </div>
-
-                <div class="pt-3 border-t border-slate-700 flex justify-between items-center font-bold">
-                    <span class="text-sm text-slate-300 print-text-dark">Lasses Faste Udgifter i alt:</span>
-                    <span class="text-base text-amber-400" id="total-fixed-lasse">0 kr.</span>
-                </div>
+        <!-- SENESTE POSTERINGER -->
+        <section class="space-y-3 pt-2">
+            <div class="flex justify-between items-center px-1">
+                <h2 class="text-sm font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                    <i data-lucide="history" class="w-4 h-4 text-blue-400"></i> Seneste Aktivitet
+                </h2>
             </div>
-
-            <!-- COLUMN 2: METTE -->
-            <div class="bg-darkcard print-card p-6 rounded-2xl border border-slate-700/50 shadow-lg space-y-4">
-                <div class="flex justify-between items-center border-b border-slate-700 pb-3">
-                    <div class="flex items-center gap-2">
-                        <div class="w-8 h-8 rounded-full bg-purple-500/20 text-purple-400 flex items-center justify-center font-bold">M</div>
-                        <h2 class="text-lg font-bold text-slate-100 print-text-dark">Mette</h2>
-                    </div>
-                    <span class="text-xs font-semibold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
-                        Netto: <span id="txt-inc-mette">23.000 kr.</span>
-                    </span>
-                </div>
-
-                <div class="space-y-3 text-sm">
-                    <div>
-                        <label class="block text-xs text-slate-400 print-text-muted mb-1">Udbetalt Løn / Måned (kr.)</label>
-                        <input type="number" id="in-inc-mette" value="23000" oninput="recalculate()" class="w-full bg-darkbg print-card border border-slate-600 rounded-lg p-2 font-medium text-slate-100">
-                    </div>
-
-                    <div class="pt-2 border-t border-slate-800 flex justify-between items-center">
-                        <span class="text-xs font-semibold text-slate-400 print-text-muted uppercase">Faste Udgifter & Transport</span>
-                        <button onclick="addItem('mette')" class="no-print text-xs text-blue-400 hover:text-blue-300 font-medium flex items-center gap-1">
-                            <i class="fa-solid fa-plus-circle"></i> Tilføj punkt
-                        </button>
-                    </div>
-
-                    <!-- Dynamic Expenses Container for Mette -->
-                    <div id="items-container-mette" class="space-y-2"></div>
-
-                    <!-- Toggle for Forbrugslån Mette -->
-                    <div class="p-3 bg-slate-800/50 print-card rounded-xl border border-slate-700/80 mt-2 space-y-2">
-                        <div class="flex items-center justify-between">
-                            <label for="chk-debt-mette" class="text-xs text-slate-300 print-text-dark font-medium cursor-pointer">Inkluder eksisterende gæld/afdrag i budget</label>
-                            <input type="checkbox" id="chk-debt-mette" checked onchange="recalculate()" class="w-4 h-4 rounded text-blue-600">
-                        </div>
-                        <div id="debt-input-container-mette" class="hidden flex justify-between items-center gap-2 pt-1">
-                            <span class="text-xs text-slate-400">Gældsydelse pr. md. (kr.)</span>
-                            <input type="number" id="in-debt-mette" value="6000" oninput="recalculate()" class="w-28 text-right bg-darkbg print-card border border-slate-600 rounded-lg p-1 text-slate-100 text-xs">
-                        </div>
-                        <p class="text-[11px] text-slate-400 print-text-muted italic">
-                            *Note: Sæt flueben hvis lån afvikles løbende. Fjern hvis det indfries før køb.
-                        </p>
-                    </div>
-                </div>
-
-                <div class="pt-3 border-t border-slate-700 flex justify-between items-center font-bold">
-                    <span class="text-sm text-slate-300 print-text-dark">Mettes Faste Udgifter i alt:</span>
-                    <span class="text-base text-amber-400" id="total-fixed-mette">0 kr.</span>
-                </div>
+            <div id="transaktions-container" class="glass-panel rounded-2xl p-3 divide-y divide-slate-800/60 max-h-56 overflow-y-auto no-scrollbar">
+                <!-- Dynamiske transaktioner indsættes her -->
             </div>
+        </section>
 
-            <!-- COLUMN 3: FÆLLES & KOMMENDE BOLIG -->
-            <div class="bg-darkcard print-card p-6 rounded-2xl border border-slate-700/50 shadow-lg space-y-4">
-                <div class="flex justify-between items-center border-b border-slate-700 pb-3">
-                    <div class="flex items-center gap-2">
-                        <div class="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold">F</div>
-                        <h2 class="text-lg font-bold text-slate-100 print-text-dark">Fælles / Bolig</h2>
-                    </div>
-                    <span class="text-xs font-semibold text-blue-400 bg-blue-500/10 px-2.5 py-1 rounded-full border border-blue-500/20">Hus: 2,8 mio. kr.</span>
-                </div>
+    </main>
 
-                <!-- Input fields Bolig -->
-                <div class="space-y-3 text-sm">
-                    <div class="flex justify-between items-center gap-2">
-                        <label class="text-xs text-slate-300 print-text-dark">Købspris Hus (kr.)</label>
-                        <input type="number" id="in-house-price" value="2800000" step="50000" oninput="recalculate()" class="w-32 text-right bg-darkbg print-card border border-slate-600 rounded-lg p-1.5 text-slate-100 font-semibold">
-                    </div>
-
-                    <div class="flex justify-between items-center gap-2">
-                        <label class="text-xs text-slate-300 print-text-dark">Udbetaling (Andelssalg)</label>
-                        <input type="number" id="in-downpayment" value="260000" step="10000" oninput="recalculate()" class="w-32 text-right bg-darkbg print-card border border-slate-600 rounded-lg p-1.5 text-emerald-400 font-semibold">
-                    </div>
-
-                    <div class="pt-2 border-t border-slate-800 flex justify-between items-center">
-                        <span class="text-xs font-semibold text-slate-400 print-text-muted uppercase">Månedlige Boligudgifter</span>
-                        <button onclick="addItem('house')" class="no-print text-xs text-blue-400 hover:text-blue-300 font-medium flex items-center gap-1">
-                            <i class="fa-solid fa-plus-circle"></i> Tilføj punkt
-                        </button>
-                    </div>
-
-                    <div class="flex justify-between items-center gap-2">
-                        <div>
-                            <span class="block text-xs text-slate-300 print-text-dark">Nyt Boliglån (netto/md.)</span>
-                            <span class="text-[10px] text-slate-400">Realkredit + Bank efter skat</span>
-                        </div>
-                        <input type="number" id="in-housing-loan" value="12200" oninput="recalculate()" class="w-28 text-right bg-darkbg print-card border border-slate-600 rounded-lg p-1.5 text-blue-400 font-bold">
-                    </div>
-
-                    <!-- Dynamic Expenses Container for House -->
-                    <div id="items-container-house" class="space-y-2"></div>
-
-                    <div class="p-3 bg-blue-950/30 print-card rounded-xl border border-blue-900/50 mt-2 space-y-1">
-                        <div class="flex justify-between text-xs text-slate-300 print-text-dark">
-                            <span>Realkreditlån (80%):</span>
-                            <span class="font-semibold text-blue-400" id="txt-rk-loan">2.240.000 kr.</span>
-                        </div>
-                        <div class="flex justify-between text-xs text-slate-300 print-text-dark">
-                            <span>Banklån (10,7%):</span>
-                            <span class="font-semibold text-amber-400" id="txt-bank-loan">300.000 kr.</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="pt-3 border-t border-slate-700 flex justify-between items-center font-bold">
-                    <span class="text-sm text-slate-300 print-text-dark">Fælles Boligudgifter i alt:</span>
-                    <span class="text-base text-blue-400" id="total-fixed-house">0 kr.</span>
-                </div>
-            </div>
-
-        </div>
-
-        <!-- Bank Credit Table & Variable Allocation -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <!-- FIXED BOTTOM BAR (S24 ERGONOMI) -->
+    <nav class="fixed bottom-0 left-0 right-0 z-40 glass-panel border-t border-slate-800/80 p-3 pb-6">
+        <div class="max-w-md mx-auto grid grid-cols-3 gap-2">
+            <button onclick="openBrugPengeModal()" class="bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white font-bold py-3 px-2 rounded-2xl flex flex-col items-center justify-center gap-1 shadow-lg shadow-red-950/40 active:scale-95 transition">
+                <i data-lucide="minus-circle" class="w-5 h-5"></i>
+                <span class="text-xs">💸 Brug penge</span>
+            </button>
             
-            <!-- Left 7 Cols: Official Bank Budget Table -->
-            <div class="lg:col-span-7 bg-darkcard print-card p-6 rounded-2xl border border-slate-700/50 shadow-lg space-y-4">
-                <div class="flex justify-between items-center border-b border-slate-700 pb-3">
-                    <h3 class="text-base font-bold text-slate-100 print-text-dark flex items-center gap-2">
-                        <i class="fa-solid fa-list-check text-blue-400"></i> Konsolideret Budgetopgørelse (Pr. Måned)
-                    </h3>
-                    <span class="text-xs text-slate-400 print-text-muted">Opstillet til Kreditgodkendelse</span>
-                </div>
+            <button onclick="openTilfoejPengeModal()" class="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold py-3 px-2 rounded-2xl flex flex-col items-center justify-center gap-1 shadow-lg shadow-emerald-950/40 active:scale-95 transition">
+                <i data-lucide="plus-circle" class="w-5 h-5"></i>
+                <span class="text-xs">➕ Tilføj / Overfør</span>
+            </button>
 
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-xs border-collapse">
-                        <thead>
-                            <tr class="border-b border-slate-700 text-slate-400 print-text-muted">
-                                <th class="py-2 font-semibold">Budgetkategori</th>
-                                <th class="py-2 text-right font-semibold">Lasse</th>
-                                <th class="py-2 text-right font-semibold">Mette</th>
-                                <th class="py-2 text-right font-semibold">Fælles/Bolig</th>
-                                <th class="py-2 text-right font-semibold text-slate-200 print-text-dark">I alt (kr.)</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-800 print-text-dark">
-                            <tr>
-                                <td class="py-2 font-medium text-slate-200 print-text-dark">Netto Indtægt (udbetalt)</td>
-                                <td class="py-2 text-right text-emerald-400 font-semibold" id="tb-inc-lasse">25.000 kr.</td>
-                                <td class="py-2 text-right text-emerald-400 font-semibold" id="tb-inc-mette">23.000 kr.</td>
-                                <td class="py-2 text-right text-slate-500">-</td>
-                                <td class="py-2 text-right font-bold text-emerald-400" id="tb-inc-total">48.000 kr.</td>
-                            </tr>
-                            <tr>
-                                <td class="py-2 text-slate-300">Boliglån (Realkredit + Bank)</td>
-                                <td class="py-2 text-right text-slate-500">-</td>
-                                <td class="py-2 text-right text-slate-500">-</td>
-                                <td class="py-2 text-right text-slate-200" id="tb-loan-house">12.200 kr.</td>
-                                <td class="py-2 text-right font-semibold text-slate-200" id="tb-loan-total">12.200 kr.</td>
-                            </tr>
-                            <tr>
-                                <td class="py-2 text-slate-300">Husets Drift & Ejerafgifter</td>
-                                <td class="py-2 text-right text-slate-500">-</td>
-                                <td class="py-2 text-right text-slate-500">-</td>
-                                <td class="py-2 text-right text-slate-200" id="tb-drift-house">4.850 kr.</td>
-                                <td class="py-2 text-right font-semibold text-slate-200" id="tb-drift-total">4.850 kr.</td>
-                            </tr>
-                            <tr>
-                                <td class="py-2 text-slate-300">Transport & Bilhold</td>
-                                <td class="py-2 text-right text-slate-200" id="tb-car-lasse">6.380 kr.</td>
-                                <td class="py-2 text-right text-slate-200" id="tb-car-mette">5.000 kr.</td>
-                                <td class="py-2 text-right text-slate-500">-</td>
-                                <td class="py-2 text-right font-semibold text-slate-200" id="tb-car-total">11.380 kr.</td>
-                            </tr>
-                            <tr>
-                                <td class="py-2 text-slate-300">Øvrige Lån & Afdrag</td>
-                                <td class="py-2 text-right text-slate-200" id="tb-debt-lasse">0 kr.</td>
-                                <td class="py-2 text-right text-slate-200" id="tb-debt-mette">6.000 kr.</td>
-                                <td class="py-2 text-right text-slate-500">-</td>
-                                <td class="py-2 text-right font-semibold text-slate-200" id="tb-debt-total">6.000 kr.</td>
-                            </tr>
-                            <tr>
-                                <td class="py-2 text-slate-300">Telefon, Forsikring & Kontingent</td>
-                                <td class="py-2 text-right text-slate-200" id="tb-other-lasse">350 kr.</td>
-                                <td class="py-2 text-right text-slate-200" id="tb-other-mette">1.600 kr.</td>
-                                <td class="py-2 text-right text-slate-500">-</td>
-                                <td class="py-2 text-right font-semibold text-slate-200" id="tb-other-total">1.950 kr.</td>
-                            </tr>
-                            <tr class="font-bold border-t-2 border-slate-700 text-slate-100 print-text-dark">
-                                <td class="py-2.5 text-amber-400">Samlede Faste Udgifter</td>
-                                <td class="py-2.5 text-right text-amber-400" id="tb-fixed-lasse">6.730 kr.</td>
-                                <td class="py-2.5 text-right text-amber-400" id="tb-fixed-mette">12.600 kr.</td>
-                                <td class="py-2.5 text-right text-amber-400" id="tb-fixed-house">17.050 kr.</td>
-                                <td class="py-2.5 text-right text-amber-400 text-sm" id="tb-fixed-total">36.380 kr.</td>
-                            </tr>
-                            <tr class="font-bold border-t border-slate-700 text-emerald-400 bg-emerald-500/5">
-                                <td class="py-3 text-sm">Resterende Rådighedsbeløb</td>
-                                <td class="py-3 text-right" id="tb-disp-lasse">18.270 kr.</td>
-                                <td class="py-3 text-right" id="tb-disp-mette">10.400 kr.</td>
-                                <td class="py-3 text-right text-slate-500">-</td>
-                                <td class="py-3 text-right text-base" id="tb-disp-total">11.620 kr.</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+            <button onclick="openOpretKasseModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold py-3 px-2 rounded-2xl flex flex-col items-center justify-center gap-1 border border-slate-700 active:scale-95 transition">
+                <i data-lucide="folder-plus" class="w-5 h-5 text-purple-400"></i>
+                <span class="text-xs">📦 Ny Kasse</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- MODAL: BRUG PENGE -->
+    <div id="modal-brug-penge" class="fixed inset-0 z-50 modal-bg flex items-end sm:items-center justify-center p-0 sm:p-4 hidden">
+        <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 space-y-4 shadow-2xl animate-in slide-in-from-bottom duration-200">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 class="font-bold text-slate-100 flex items-center gap-2">
+                    <i data-lucide="shopping-bag" class="w-5 h-5 text-red-400"></i> Brug penge fra kasse
+                </h3>
+                <button onclick="closeModal('modal-brug-penge')" class="p-1 rounded-lg text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
             </div>
 
-            <!-- Right 5 Cols: Variable Budget Allocation & Chart -->
-            <div class="lg:col-span-5 space-y-6">
-                
-                <div class="bg-darkcard print-card p-6 rounded-2xl border border-slate-700/50 shadow-lg space-y-4">
-                    <h3 class="text-base font-bold text-slate-100 print-text-dark flex items-center gap-2 border-b border-slate-700 pb-3">
-                        <i class="fa-solid fa-pie-chart text-purple-400"></i> Rådighedsbeløbets Fordeling
-                    </h3>
+            <div class="space-y-3">
+                <div>
+                    <label class="text-xs text-slate-400 font-medium block mb-1">Vælg kasse</label>
+                    <select id="brug-kasse-select" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-slate-100 text-sm focus:outline-none focus:border-red-500"></select>
+                </div>
 
-                    <div class="space-y-3">
-                        <div>
-                            <div class="flex justify-between text-xs text-slate-300 print-text-dark mb-1">
-                                <span>Mad & Dagligvarer:</span>
-                                <strong id="txt-food-val" class="text-amber-400">5.000 kr.</strong>
-                            </div>
-                            <input type="range" id="in-food-var" min="3000" max="8000" step="250" value="5000" oninput="recalculate()" class="w-full h-1.5 bg-slate-700 rounded no-print">
-                        </div>
-
-                        <div>
-                            <div class="flex justify-between text-xs text-slate-300 print-text-dark mb-1">
-                                <span>Diverse & Fritid (tøj, oplevelser m.m.):</span>
-                                <strong id="txt-div-val" class="text-indigo-400">3.000 kr.</strong>
-                            </div>
-                            <input type="range" id="in-div-var" min="1000" max="6000" step="250" value="3000" oninput="recalculate()" class="w-full h-1.5 bg-slate-700 rounded no-print">
-                        </div>
-
-                        <div class="p-3 bg-emerald-950/20 print-card rounded-xl border border-emerald-500/30 flex justify-between items-center">
-                            <div>
-                                <span class="block text-xs font-bold text-emerald-400">Månedligt Opsparingsskøn</span>
-                                <span class="text-[11px] text-slate-400">Fri buffer efter mad & diverse</span>
-                            </div>
-                            <span class="text-lg font-extrabold text-emerald-400" id="txt-free-savings">3.620 kr.</span>
-                        </div>
-                    </div>
-
-                    <div class="relative h-44 flex items-center justify-center pt-2">
-                        <canvas id="disposableChart"></canvas>
+                <div>
+                    <label class="text-xs text-slate-400 font-medium block mb-1">Beløb (kr.)</label>
+                    <input type="number" id="brug-belob-input" inputmode="decimal" placeholder="0" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-2xl font-bold text-red-400 focus:outline-none focus:border-red-500">
+                    <!-- Quick Buttons -->
+                    <div class="grid grid-cols-4 gap-1.5 mt-2">
+                        <button onclick="addQuickAmount('brug-belob-input', 50)" class="bg-slate-800 text-slate-300 hover:bg-slate-700 py-1.5 text-xs font-semibold rounded-lg border border-slate-700">+50</button>
+                        <button onclick="addQuickAmount('brug-belob-input', 100)" class="bg-slate-800 text-slate-300 hover:bg-slate-700 py-1.5 text-xs font-semibold rounded-lg border border-slate-700">+100</button>
+                        <button onclick="addQuickAmount('brug-belob-input', 200)" class="bg-slate-800 text-slate-300 hover:bg-slate-700 py-1.5 text-xs font-semibold rounded-lg border border-slate-700">+200</button>
+                        <button onclick="addQuickAmount('brug-belob-input', 500)" class="bg-slate-800 text-slate-300 hover:bg-slate-700 py-1.5 text-xs font-semibold rounded-lg border border-slate-700">+500</button>
                     </div>
                 </div>
 
-            </div>
-
-        </div>
-
-        <!-- Bank Signatures Block for Print -->
-        <div class="bg-darkcard print-card p-6 rounded-2xl border border-slate-700/50 shadow-md space-y-4">
-            <h4 class="text-xs font-bold text-slate-400 print-text-muted uppercase tracking-wider">Bemærkninger & Underskrifter til Banken</h4>
-            <p class="text-xs text-slate-300 print-text-dark leading-relaxed">
-                Nærværende opgørelse er udarbejdet som dokumentation for husholdningens samlede indtægts- og udgiftsforhold i forbindelse med ansøgning om realkredit- og boliglån til erhvervelse af ejendommen. Alle anførte tal er baseret på gældende lønsedler, faste aftaler og forventede driftomkostninger.
-            </p>
-            
-            <div class="grid grid-cols-2 gap-8 pt-6 border-t border-slate-700/80">
-                <div class="border-t border-slate-600 print-card pt-2">
-                    <p class="text-xs font-semibold text-slate-300 print-text-dark">Lasse (Ansøger 1)</p>
-                    <p class="text-[10px] text-slate-500 print-text-muted mt-4">Dato & Underskrift: ________________________</p>
-                </div>
-                <div class="border-t border-slate-600 print-card pt-2">
-                    <p class="text-xs font-semibold text-slate-300 print-text-dark">Mette (Ansøger 2)</p>
-                    <p class="text-[10px] text-slate-500 print-text-muted mt-4">Dato & Underskrift: ________________________</p>
+                <div>
+                    <label class="text-xs text-slate-400 font-medium block mb-1">Tekst / Bemærkning (Valgfri)</label>
+                    <input type="text" id="brug-tekst-input" placeholder="f.eks. Rema 1000, Føtex" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-slate-100 text-sm focus:outline-none focus:border-red-500">
                 </div>
             </div>
-        </div>
 
+            <button onclick="gemBrugPenge()" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3.5 rounded-xl transition active:scale-98 shadow-lg shadow-red-950/50">
+                Registrer forbrug
+            </button>
+        </div>
     </div>
 
-    <!-- JavaScript logic -->
-    <script>
-        let chartInstance = null;
+    <!-- MODAL: TILFØJ / OVERFØR -->
+    <div id="modal-tilfoej-penge" class="fixed inset-0 z-50 modal-bg flex items-end sm:items-center justify-center p-0 sm:p-4 hidden">
+        <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 space-y-4 shadow-2xl animate-in slide-in-from-bottom duration-200">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 class="font-bold text-slate-100 flex items-center gap-2">
+                    <i data-lucide="piggy-bank" class="w-5 h-5 text-emerald-400"></i> Tilføj penge til kasse
+                </h3>
+                <button onclick="closeModal('modal-tilfoej-penge')" class="p-1 rounded-lg text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
 
-        // Default item structures to ensure identical standard items for both
-        const defaultItems = {
-            lasse: [
-                { name: 'Billån (Afdrag)', amount: 3680 },
-                { name: 'El til bilen', amount: 1500 },
-                { name: 'Bilforsikring', amount: 1200 },
-                { name: 'Sygeforsikring "danmark"', amount: 150 },
-                { name: 'Telefon / Mobil', amount: 200 }
+            <div class="space-y-3">
+                <div>
+                    <label class="text-xs text-slate-400 font-medium block mb-1">Vælg kasse</label>
+                    <select id="tilfoej-kasse-select" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-slate-100 text-sm focus:outline-none focus:border-emerald-500"></select>
+                </div>
+
+                <div>
+                    <label class="text-xs text-slate-400 font-medium block mb-1">Beløb (kr.)</label>
+                    <input type="number" id="tilfoej-belob-input" inputmode="decimal" placeholder="0" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-2xl font-bold text-emerald-400 focus:outline-none focus:border-emerald-500">
+                </div>
+
+                <div>
+                    <label class="text-xs text-slate-400 font-medium block mb-1">Tekst / Bemærkning (Valgfri)</label>
+                    <input type="text" id="tilfoej-tekst-input" placeholder="f.eks. Månedlig indsætning, Mellem-overførsel" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-slate-100 text-sm focus:outline-none focus:border-emerald-500">
+                </div>
+            </div>
+
+            <button onclick="gemTilfoejPenge()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3.5 rounded-xl transition active:scale-98 shadow-lg shadow-emerald-950/50">
+                Indsæt beløb
+            </button>
+        </div>
+    </div>
+
+    <!-- MODAL: OPRET KASSE -->
+    <div id="modal-opret-kasse" class="fixed inset-0 z-50 modal-bg flex items-end sm:items-center justify-center p-0 sm:p-4 hidden">
+        <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 space-y-4 shadow-2xl">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 class="font-bold text-slate-100 flex items-center gap-2">
+                    <i data-lucide="folder-plus" class="w-5 h-5 text-purple-400"></i> Opret Ny Kasse
+                </h3>
+                <button onclick="closeModal('modal-opret-kasse')" class="p-1 rounded-lg text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+
+            <div class="space-y-3">
+                <div>
+                    <label class="text-xs text-slate-400 font-medium block mb-1">Kassens Navn</label>
+                    <input type="text" id="ny-kasse-navn" placeholder="f.eks. Dagligvarer, Flytte-opsparing" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-slate-100 text-sm focus:outline-none focus:border-purple-500">
+                </div>
+
+                <div>
+                    <label class="text-xs text-slate-400 font-medium block mb-1">Mål / Budget for kassen (kr.)</label>
+                    <input type="number" id="ny-kasse-maal" inputmode="decimal" placeholder="0 hvis intet fast mål" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-slate-100 text-sm focus:outline-none focus:border-purple-500">
+                </div>
+
+                <div>
+                    <label class="text-xs text-slate-400 font-medium block mb-1">Start-saldo i kassen (kr.)</label>
+                    <input type="number" id="ny-kasse-saldo" inputmode="decimal" placeholder="0" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-slate-100 text-sm focus:outline-none focus:border-purple-500">
+                </div>
+            </div>
+
+            <button onclick="gemNyKasse()" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3.5 rounded-xl transition active:scale-98">
+                Opret kasse
+            </button>
+        </div>
+    </div>
+
+    <!-- MODAL: FASTE UDGIFTER -->
+    <div id="modal-faste-udgifter" class="fixed inset-0 z-50 modal-bg flex items-end sm:items-center justify-center p-0 sm:p-4 hidden">
+        <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 space-y-4 shadow-2xl max-h-[85vh] flex flex-col">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 class="font-bold text-slate-100 flex items-center gap-2">
+                    <i data-lucide="sliders" class="w-5 h-5 text-emerald-400"></i> Faste Indtægter & Udgifter
+                </h3>
+                <button onclick="closeModal('modal-faste-udgifter')" class="p-1 rounded-lg text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+
+            <div class="space-y-4 overflow-y-auto pr-1 no-scrollbar flex-1">
+                <div>
+                    <label class="text-xs text-slate-400 font-medium block mb-1">Månedlig Indtægt (Udbetalt løn i alt)</label>
+                    <input type="number" id="fast-indtaegt-input" inputmode="decimal" onchange="opdaterIndtaegt(this.value)" placeholder="0" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-xl font-bold text-emerald-400">
+                </div>
+
+                <hr class="border-slate-800">
+
+                <div class="space-y-2">
+                    <label class="text-xs text-slate-400 font-medium block">Faste udgifter (Husleje, El, Lån osv.)</label>
+                    
+                    <div class="flex gap-2">
+                        <input type="text" id="ny-udgift-navn" placeholder="Tekst (f.eks. Husleje)" class="flex-1 bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-slate-100">
+                        <input type="number" id="ny-udgift-belob" inputmode="decimal" placeholder="Kr." class="w-24 bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-slate-100">
+                        <button onclick="tilfoejFastUdgift()" class="bg-emerald-600 hover:bg-emerald-700 text-white p-2.5 rounded-xl"><i data-lucide="plus" class="w-4 h-4"></i></button>
+                    </div>
+
+                    <div id="faste-udgifter-liste" class="space-y-1.5 pt-2">
+                        <!-- Indsættes dynamisk -->
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="closeModal('modal-faste-udgifter')" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold py-3 rounded-xl">
+                Gem & Luk
+            </button>
+        </div>
+    </div>
+
+    <!-- LOGIK (JAVASCRIPT) -->
+    <script>
+        // STANDARD STATE
+        let appData = {
+            indtaegt: 0,
+            fasteUdgifter: [],
+            kasser: [
+                { id: 'k1', navn: 'Dagligvarer', maal: 5000, saldo: 3500 },
+                { id: 'k2', navn: 'Diverse', maal: 2000, saldo: 1200 },
+                { id: 'k3', navn: 'Flytte-forbedringer', maal: 10000, saldo: 2500 },
+                { id: 'k4', navn: 'Flytte-opsparing', maal: 15000, saldo: 6000 },
+                { id: 'k5', navn: 'Opsparing', maal: 20000, saldo: 12000 }
             ],
-            mette: [
-                { name: 'Benzin / Brændstof', amount: 3000 },
-                { name: 'Bilforsikring', amount: 2000 },
-                { name: 'Fagforening & A-kasse', amount: 1000 },
-                { name: 'Telefon / Mobil', amount: 600 }
-            ],
-            house: [
-                { name: 'Husets Drift & Ejerafgifter', amount: 4850 }
-            ]
+            transaktioner: []
         };
 
-        let state = JSON.parse(JSON.stringify(defaultItems));
-
-        function formatDKK(amount) {
-            return new Intl.NumberFormat('da-DK', { maximumFractionDigits: 0 }).format(Math.round(amount)) + ' kr.';
-        }
-
-        function toggleTheme() {
-            const html = document.documentElement;
-            const themeIcon = document.getElementById('theme-icon');
-            const themeText = document.getElementById('theme-text');
-
-            if (html.classList.contains('dark')) {
-                html.classList.remove('dark');
-                document.body.classList.remove('bg-darkbg', 'text-slate-100');
-                document.body.classList.add('bg-slate-100', 'text-slate-900');
-                themeIcon.className = 'fa-solid fa-moon';
-                themeText.innerText = 'Mørkt Tema';
-            } else {
-                html.classList.add('dark');
-                document.body.classList.remove('bg-slate-100', 'text-slate-900');
-                document.body.classList.add('bg-darkbg', 'text-slate-100');
-                themeIcon.className = 'fa-solid fa-sun';
-                themeText.innerText = 'Lyst Tema';
+        // VIBRATION FEEDBACK (S24)
+        function triggerHaptic(type = 'click') {
+            if ('vibrate' in navigator) {
+                if (type === 'click') navigator.vibrate(25);
+                if (type === 'success') navigator.vibrate([40, 60, 40]);
             }
         }
 
-        function renderItems(section) {
-            const container = document.getElementById(`items-container-${section}`);
-            if (!container) return;
-            container.innerHTML = '';
+        // LOAD DATA
+        function loadData() {
+            const saved = localStorage.getItem('budget_pwa_data');
+            if (saved) {
+                try {
+                    appData = JSON.parse(saved);
+                } catch(e) { console.error(e); }
+            }
+            renderApp();
+        }
 
-            state[section].forEach((item, index) => {
-                const row = document.createElement('div');
-                row.className = 'flex justify-between items-center gap-2 text-xs';
-                row.innerHTML = `
-                    <input type="text" value="${item.name}" onchange="updateItemName('${section}', ${index}, this.value)" class="w-full bg-transparent border-b border-slate-700 focus:border-blue-500 text-slate-300 print-text-dark py-1 outline-none">
-                    <input type="number" value="${item.amount}" oninput="updateItemAmount('${section}', ${index}, this.value)" class="w-24 text-right bg-darkbg print-card border border-slate-600 rounded-lg p-1 text-slate-100 font-medium">
-                    <button onclick="removeItem('${section}', ${index})" class="no-print text-slate-500 hover:text-red-400 p-1">
-                        <i class="fa-solid fa-trash-can"></i>
-                    </button>
+        // SAVE DATA
+        function saveData() {
+            localStorage.setItem('budget_pwa_data', JSON.stringify(appData));
+            renderApp();
+        }
+
+        // RENDER HELE APPEN
+        function renderApp() {
+            // 1. Datoer
+            const now = new Date();
+            const dateOptions = { weekday: 'long', day: 'numeric', month: 'long' };
+            document.getElementById('current-date-text').innerText = now.toLocaleDateString('da-DK', dateOptions);
+
+            const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+            document.getElementById('month-progress-badge').innerText = `Dag ${now.getDate()} i måneden (${daysInMonth - now.getDate()} dage tilbage)`;
+
+            // 2. Beregn Total Faste Udgifter & Rådighedsbeløb
+            const samletFaste = appData.fasteUdgifter.reduce((acc, u) => acc + Number(u.belob), 0);
+            const radighedsBelob = Math.max(0, appData.indtaegt - samletFaste);
+
+            // 3. Beregn fordelt i kasser
+            const samletIKasser = appData.kasser.reduce((acc, k) => acc + Number(k.saldo), 0);
+            const ufordelt = radighedsBelob - samletIKasser;
+
+            document.getElementById('radighed-belob').innerText = radighedsBelob.toLocaleString('da-DK') + ' kr.';
+            document.getElementById('fordelt-belob').innerText = samletIKasser.toLocaleString('da-DK') + ' kr.';
+            document.getElementById('ufordelt-belob').innerText = ufordelt.toLocaleString('da-DK') + ' kr.';
+
+            // Progress Barer
+            const fordeltPct = radighedsBelob > 0 ? Math.min(100, (samletIKasser / radighedsBelob) * 100) : 0;
+            const ufordeltPct = radighedsBelob > 0 ? Math.max(0, (ufordelt / radighedsBelob) * 100) : 0;
+            
+            document.getElementById('bar-fordelt').style.width = fordeltPct + '%';
+            document.getElementById('bar-ufordelt').style.width = ufordeltPct + '%';
+
+            // 4. Render Kasser
+            const kasserContainer = document.getElementById('kasser-container');
+            kasserContainer.innerHTML = '';
+            document.getElementById('kasser-antal').innerText = `${appData.kasser.length} kasser`;
+
+            appData.kasser.forEach(k => {
+                const pct = k.maal > 0 ? Math.min(100, Math.round((k.saldo / k.maal) * 100)) : 0;
+                const isGoalReached = k.maal > 0 && k.saldo >= k.maal;
+
+                const card = document.createElement('div');
+                card.className = 'glass-panel p-4 rounded-2xl border border-slate-800/80 relative space-y-2';
+                
+                card.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <div class="flex items-center gap-1.5">
+                                <h3 class="font-bold text-slate-100">${k.navn}</h3>
+                                ${isGoalReached ? '<span class="text-[10px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-bold px-1.5 py-0.5 rounded-full">🎉 Mål Nået!</span>' : ''}
+                            </div>
+                            <p class="text-xs text-slate-400">
+                                ${k.maal > 0 ? `Mål: ${Number(k.maal).toLocaleString('da-DK')} kr.` : 'Intet fast mål'}
+                            </p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-lg font-black ${k.saldo < 0 ? 'text-red-400' : 'text-slate-100'}">
+                                ${Number(k.saldo).toLocaleString('da-DK')} kr.
+                            </span>
+                            <button onclick="sletKasse('${k.id}')" class="text-slate-600 hover:text-red-400 p-1 rounded-lg transition">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    ${k.maal > 0 ? `
+                        <div class="space-y-1">
+                            <div class="flex justify-between text-[11px] text-slate-400 font-medium">
+                                <span>Fremskridt</span>
+                                <span class="${isGoalReached ? 'text-emerald-400 font-bold' : ''}">${pct}%</span>
+                            </div>
+                            <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+                                <div class="${isGoalReached ? 'bg-emerald-400' : 'bg-purple-500'} h-full transition-all duration-500" style="width: ${pct}%"></div>
+                            </div>
+                        </div>
+                    ` : ''}
                 `;
-                container.appendChild(row);
+                kasserContainer.appendChild(card);
+            });
+
+            // 5. Render Transaktioner
+            const txContainer = document.getElementById('transaktions-container');
+            txContainer.innerHTML = '';
+
+            if (appData.transaktioner.length === 0) {
+                txContainer.innerHTML = '<p class="text-xs text-slate-500 text-center py-4">Ingen registreringer endnu</p>';
+            } else {
+                appData.transaktioner.slice(0, 15).forEach(t => {
+                    const item = document.createElement('div');
+                    item.className = 'py-2.5 flex justify-between items-center text-xs';
+                    const isMinus = t.type === 'brug';
+                    
+                    item.innerHTML = `
+                        <div class="space-y-0.5">
+                            <p class="font-medium text-slate-200">${t.kasseNavn} <span class="text-slate-500">• ${t.tekst || (isMinus ? 'Forbrug' : 'Indsætning')}</span></p>
+                            <p class="text-[10px] text-slate-500">${t.dato}</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="font-bold ${isMinus ? 'text-red-400' : 'text-emerald-400'}">
+                                ${isMinus ? '-' : '+'}${Number(t.belob).toLocaleString('da-DK')} kr.
+                            </span>
+                            <button onclick="sletTransaktion('${t.id}')" class="text-slate-600 hover:text-red-400 p-1">
+                                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                            </button>
+                        </div>
+                    `;
+                    txContainer.appendChild(item);
+                });
+            }
+
+            // Update Select Dropdowns
+            updateSelectOptions();
+            lucide.createIcons();
+        }
+
+        // UPDATE SELECT DROPDOWNS
+        function updateSelectOptions() {
+            const brugSelect = document.getElementById('brug-kasse-select');
+            const tilfoejSelect = document.getElementById('tilfoej-kasse-select');
+            
+            brugSelect.innerHTML = '';
+            tilfoejSelect.innerHTML = '';
+
+            appData.kasser.forEach(k => {
+                const opt1 = document.createElement('option');
+                opt1.value = k.id;
+                opt1.innerText = `${k.navn} (${k.saldo} kr.)`;
+                brugSelect.appendChild(opt1);
+
+                const opt2 = document.createElement('option');
+                opt2.value = k.id;
+                opt2.innerText = `${k.navn} (${k.saldo} kr.)`;
+                tilfoejSelect.appendChild(opt2);
             });
         }
 
-        function addItem(section) {
-            state[section].push({ name: 'Ny udgift', amount: 0 });
-            renderItems(section);
-            recalculate();
+        // MODAL HANDLERS
+        function openBrugPengeModal() {
+            triggerHaptic();
+            document.getElementById('modal-brug-penge').classList.remove('hidden');
+            document.getElementById('brug-belob-input').focus();
         }
 
-        function removeItem(section, index) {
-            state[section].splice(index, 1);
-            renderItems(section);
-            recalculate();
+        function openTilfoejPengeModal() {
+            triggerHaptic();
+            document.getElementById('modal-tilfoej-penge').classList.remove('hidden');
+            document.getElementById('tilfoej-belob-input').focus();
         }
 
-        function updateItemName(section, index, name) {
-            state[section][index].name = name;
-            recalculate();
+        function openOpretKasseModal() {
+            triggerHaptic();
+            document.getElementById('modal-opret-kasse').classList.remove('hidden');
         }
 
-        function updateItemAmount(section, index, amount) {
-            state[section][index].amount = parseFloat(amount) || 0;
-            recalculate();
-        }
-
-        function recalculate() {
-            // LASSE INPUTS
-            const incLasse = parseFloat(document.getElementById('in-inc-lasse').value) || 0;
-            const chkDebtLasse = document.getElementById('chk-debt-lasse').checked;
-            document.getElementById('debt-input-container-lasse').style.display = chkDebtLasse ? 'flex' : 'none';
-            const debtLasse = chkDebtLasse ? (parseFloat(document.getElementById('in-debt-lasse').value) || 0) : 0;
-
-            const itemsTotalLasse = state.lasse.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
-            const fixedTotalLasse = itemsTotalLasse + debtLasse;
-
-            // METTE INPUTS
-            const incMette = parseFloat(document.getElementById('in-inc-mette').value) || 0;
-            const chkDebtMette = document.getElementById('chk-debt-mette').checked;
-            document.getElementById('debt-input-container-mette').style.display = chkDebtMette ? 'flex' : 'none';
-            const debtMette = chkDebtMette ? (parseFloat(document.getElementById('in-debt-mette').value) || 0) : 0;
-
-            const itemsTotalMette = state.mette.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
-            const fixedTotalMette = itemsTotalMette + debtMette;
-
-            // HOUSING INPUTS
-            const housePrice = parseFloat(document.getElementById('in-house-price').value) || 0;
-            const downpayment = parseFloat(document.getElementById('in-downpayment').value) || 0;
-            const housingLoan = parseFloat(document.getElementById('in-housing-loan').value) || 0;
-
-            const itemsTotalHouse = state.house.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
-            const fixedTotalHouse = housingLoan + itemsTotalHouse;
-
-            const rkLoan = Math.min(housePrice * 0.80, Math.max(0, housePrice - downpayment));
-            const bankLoan = Math.max(0, housePrice - downpayment - rkLoan);
-
-            // VARIABLE INPUTS
-            const foodVar = parseFloat(document.getElementById('in-food-var').value) || 0;
-            const divVar = parseFloat(document.getElementById('in-div-var').value) || 0;
-
-            // TOTALS
-            const totalIncome = incLasse + incMette;
-            const totalFixed = fixedTotalLasse + fixedTotalMette + fixedTotalHouse;
-            const totalDisposable = totalIncome - totalFixed;
-            const freeSavings = totalDisposable - foodVar - divVar;
-
-            // UPDATE UI HEADERS & KPIS
-            document.getElementById('kpi-total-income').innerText = formatDKK(totalIncome);
-            document.getElementById('kpi-inc-lasse').innerText = formatDKK(incLasse);
-            document.getElementById('kpi-inc-mette').innerText = formatDKK(incMette);
-            document.getElementById('kpi-total-fixed').innerText = formatDKK(totalFixed);
-            document.getElementById('kpi-disposable').innerText = formatDKK(totalDisposable);
-            document.getElementById('kpi-net-surplus').innerText = formatDKK(freeSavings);
-
-            document.getElementById('txt-inc-lasse').innerText = formatDKK(incLasse);
-            document.getElementById('txt-inc-mette').innerText = formatDKK(incMette);
-            document.getElementById('total-fixed-lasse').innerText = formatDKK(fixedTotalLasse);
-            document.getElementById('total-fixed-mette').innerText = formatDKK(fixedTotalMette);
-
-            document.getElementById('txt-rk-loan').innerText = formatDKK(rkLoan);
-            document.getElementById('txt-bank-loan').innerText = formatDKK(bankLoan);
-            document.getElementById('total-fixed-house').innerText = formatDKK(fixedTotalHouse);
-
-            document.getElementById('txt-food-val').innerText = formatDKK(foodVar);
-            document.getElementById('txt-div-val').innerText = formatDKK(divVar);
-            document.getElementById('txt-free-savings').innerText = formatDKK(freeSavings);
-
-            // UPDATE BANK TABLE
-            document.getElementById('tb-inc-lasse').innerText = formatDKK(incLasse);
-            document.getElementById('tb-inc-mette').innerText = formatDKK(incMette);
-            document.getElementById('tb-inc-total').innerText = formatDKK(totalIncome);
-
-            document.getElementById('tb-loan-house').innerText = formatDKK(housingLoan);
-            document.getElementById('tb-loan-total').innerText = formatDKK(housingLoan);
-
-            document.getElementById('tb-drift-house').innerText = formatDKK(itemsTotalHouse);
-            document.getElementById('tb-drift-total').innerText = formatDKK(itemsTotalHouse);
-
-            document.getElementById('tb-car-lasse').innerText = formatDKK(itemsTotalLasse);
-            document.getElementById('tb-car-mette').innerText = formatDKK(itemsTotalMette);
-            document.getElementById('tb-car-total').innerText = formatDKK(itemsTotalLasse + itemsTotalMette);
-
-            document.getElementById('tb-debt-lasse').innerText = formatDKK(debtLasse);
-            document.getElementById('tb-debt-mette').innerText = formatDKK(debtMette);
-            document.getElementById('tb-debt-total').innerText = formatDKK(debtLasse + debtMette);
-
-            document.getElementById('tb-other-lasse').innerText = "-";
-            document.getElementById('tb-other-mette').innerText = "-";
-            document.getElementById('tb-other-total').innerText = "-";
-
-            document.getElementById('tb-fixed-lasse').innerText = formatDKK(fixedTotalLasse);
-            document.getElementById('tb-fixed-mette').innerText = formatDKK(fixedTotalMette);
-            document.getElementById('tb-fixed-house').innerText = formatDKK(fixedTotalHouse);
-            document.getElementById('tb-fixed-total').innerText = formatDKK(totalFixed);
-
-            document.getElementById('tb-disp-lasse').innerText = formatDKK(incLasse - fixedTotalLasse);
-            document.getElementById('tb-disp-mette').innerText = formatDKK(incMette - fixedTotalMette);
-            document.getElementById('tb-disp-total').innerText = formatDKK(totalDisposable);
-
-            // UPDATE CHART
-            updateChart(foodVar, divVar, Math.max(0, freeSavings));
-        }
-
-        function updateChart(food, div, savings) {
-            const ctx = document.getElementById('disposableChart').getContext('2d');
-            const data = [food, div, savings];
-
-            if (chartInstance) {
-                chartInstance.data.datasets[0].data = data;
-                chartInstance.update();
-            } else {
-                chartInstance = new Chart(ctx, {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['Mad & Dagligvarer', 'Diverse & Fritid', 'Opsparing / Buffer'],
-                        datasets: [{
-                            data: data,
-                            backgroundColor: ['#f59e0b', '#818cf8', '#10b981'],
-                            borderWidth: 0
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                position: 'right',
-                                labels: {
-                                    color: '#94a3b8',
-                                    font: { size: 10 },
-                                    boxWidth: 10
-                                }
-                            }
-                        },
-                        cutout: '65%'
-                    }
-                });
+        function toggleFasteUdgifterModal() {
+            triggerHaptic();
+            const modal = document.getElementById('modal-faste-udgifter');
+            modal.classList.toggle('hidden');
+            if(!modal.classList.contains('hidden')) {
+                document.getElementById('fast-indtaegt-input').value = appData.indtaegt || '';
+                renderFasteUdgifterListe();
             }
         }
 
-        function resetToDefaults() {
-            state = JSON.parse(JSON.stringify(defaultItems));
-            
-            document.getElementById('in-inc-lasse').value = 25000;
-            document.getElementById('chk-debt-lasse').checked = false;
-            document.getElementById('in-debt-lasse').value = 1637;
-
-            document.getElementById('in-inc-mette').value = 23000;
-            document.getElementById('chk-debt-mette').checked = true;
-            document.getElementById('in-debt-mette').value = 6000;
-
-            document.getElementById('in-house-price').value = 2800000;
-            document.getElementById('in-downpayment').value = 260000;
-            document.getElementById('in-housing-loan').value = 12200;
-
-            document.getElementById('in-food-var').value = 5000;
-            document.getElementById('in-div-var').value = 3000;
-
-            renderItems('lasse');
-            renderItems('mette');
-            renderItems('house');
-            recalculate();
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
         }
 
-        window.onload = function() {
-            renderItems('lasse');
-            renderItems('mette');
-            renderItems('house');
-            recalculate();
-        };
+        // QUICK AMOUNT HELPER
+        function addQuickAmount(inputId, val) {
+            triggerHaptic();
+            const input = document.getElementById(inputId);
+            const current = Number(input.value) || 0;
+            input.value = current + val;
+        }
+
+        // GEM BRUG PENGE
+        function gemBrugPenge() {
+            const kasseId = document.getElementById('brug-kasse-select').value;
+            const belob = Number(document.getElementById('brug-belob-input').value);
+            const tekst = document.getElementById('brug-tekst-input').value;
+
+            if (!kasseId || !belob || belob <= 0) return;
+
+            const kasse = appData.kasser.find(k => k.id === kasseId);
+            if (kasse) {
+                kasse.saldo -= belob;
+                appData.transaktioner.unshift({
+                    id: Date.now().toString(),
+                    kasseId: kasse.id,
+                    kasseNavn: kasse.navn,
+                    type: 'brug',
+                    belob: belob,
+                    tekst: tekst,
+                    dato: new Date().toLocaleDateString('da-DK', { hour: '2-digit', minute: '2-digit', day: 'numeric', month: 'short' })
+                });
+
+                triggerHaptic('click');
+                saveData();
+                closeModal('modal-brug-penge');
+                document.getElementById('brug-belob-input').value = '';
+                document.getElementById('brug-tekst-input').value = '';
+            }
+        }
+
+        // GEM TILFØJ PENGE
+        function gemTilfoejPenge() {
+            const kasseId = document.getElementById('tilfoej-kasse-select').value;
+            const belob = Number(document.getElementById('tilfoej-belob-input').value);
+            const tekst = document.getElementById('tilfoej-tekst-input').value;
+
+            if (!kasseId || !belob || belob <= 0) return;
+
+            const kasse = appData.kasser.find(k => k.id === kasseId);
+            if (kasse) {
+                const gammelSaldo = kasse.saldo;
+                kasse.saldo += belob;
+
+                // Tjek om mål er opnået for konfetti & haptik fejring!
+                if (kasse.maal > 0 && gammelSaldo < kasse.maal && kasse.saldo >= kasse.maal) {
+                    confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+                    triggerHaptic('success');
+                } else {
+                    triggerHaptic('click');
+                }
+
+                appData.transaktioner.unshift({
+                    id: Date.now().toString(),
+                    kasseId: kasse.id,
+                    kasseNavn: kasse.navn,
+                    type: 'tilfoej',
+                    belob: belob,
+                    tekst: tekst,
+                    dato: new Date().toLocaleDateString('da-DK', { hour: '2-digit', minute: '2-digit', day: 'numeric', month: 'short' })
+                });
+
+                saveData();
+                closeModal('modal-tilfoej-penge');
+                document.getElementById('tilfoej-belob-input').value = '';
+                document.getElementById('tilfoej-tekst-input').value = '';
+            }
+        }
+
+        // GEM NY KASSE
+        function gemNyKasse() {
+            const navn = document.getElementById('ny-kasse-navn').value;
+            const maal = Number(document.getElementById('ny-kasse-maal').value) || 0;
+            const saldo = Number(document.getElementById('ny-kasse-saldo').value) || 0;
+
+            if (!navn) return;
+
+            appData.kasser.push({
+                id: 'k_' + Date.now(),
+                navn: navn,
+                maal: maal,
+                saldo: saldo
+            });
+
+            triggerHaptic('click');
+            saveData();
+            closeModal('modal-opret-kasse');
+            document.getElementById('ny-kasse-navn').value = '';
+            document.getElementById('ny-kasse-maal').value = '';
+            document.getElementById('ny-kasse-saldo').value = '';
+        }
+
+        // SLET KASSE
+        function sletKasse(id) {
+            if (confirm('Vil du slette denne kasse?')) {
+                appData.kasser = appData.kasser.filter(k => k.id !== id);
+                triggerHaptic();
+                saveData();
+            }
+        }
+
+        // SLET TRANSAKTION (GENOPRET SALDO)
+        function sletTransaktion(id) {
+            const tx = appData.transaktioner.find(t => t.id === id);
+            if (tx && confirm('Slet denne postering og rulle beløbet tilbage?')) {
+                const kasse = appData.kasser.find(k => k.id === tx.kasseId);
+                if (kasse) {
+                    if (tx.type === 'brug') kasse.saldo += tx.belob;
+                    if (tx.type === 'tilfoej') kasse.saldo -= tx.belob;
+                }
+                appData.transaktioner = appData.transaktioner.filter(t => t.id !== id);
+                triggerHaptic();
+                saveData();
+            }
+        }
+
+        // FASTE UDGIFTER LOGIK
+        function opdaterIndtaegt(val) {
+            appData.indtaegt = Number(val) || 0;
+            saveData();
+        }
+
+        function tilfoejFastUdgift() {
+            const navn = document.getElementById('ny-udgift-navn').value;
+            const belob = Number(document.getElementById('ny-udgift-belob').value);
+
+            if (!navn || !belob) return;
+
+            appData.fasteUdgifter.push({
+                id: 'u_' + Date.now(),
+                navn: navn,
+                belob: belob
+            });
+
+            document.getElementById('ny-udgift-navn').value = '';
+            document.getElementById('ny-udgift-belob').value = '';
+            triggerHaptic();
+            saveData();
+            renderFasteUdgifterListe();
+        }
+
+        function sletFastUdgift(id) {
+            appData.fasteUdgifter = appData.fasteUdgifter.filter(u => u.id !== id);
+            triggerHaptic();
+            saveData();
+            renderFasteUdgifterListe();
+        }
+
+        function renderFasteUdgifterListe() {
+            const container = document.getElementById('faste-udgifter-liste');
+            container.innerHTML = '';
+
+            appData.fasteUdgifter.forEach(u => {
+                const row = document.createElement('div');
+                row.className = 'flex justify-between items-center bg-slate-800/60 p-2.5 rounded-xl text-xs';
+                row.innerHTML = `
+                    <span class="text-slate-200 font-medium">${u.navn}</span>
+                    <div class="flex items-center gap-2">
+                        <span class="font-bold text-slate-300">${Number(u.belob).toLocaleString('da-DK')} kr.</span>
+                        <button onclick="sletFastUdgift('${u.id}')" class="text-slate-500 hover:text-red-400"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                    </div>
+                `;
+                container.appendChild(row);
+            });
+            lucide.createIcons();
+        }
+
+        // INIT UPON LOAD
+        window.addEventListener('DOMContentLoaded', () => {
+            loadData();
+        });
     </script>
 </body>
 </html>
